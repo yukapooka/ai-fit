@@ -339,8 +339,9 @@ if submitted:
 
         # Score drivers
         st.subheader("Score drivers")
-        st.write(result["score_drivers"])
+        #st.write(result["score_drivers"])
 
+        score_drivers = result["score_drivers"]
         st.markdown(f"**AI Fit:** {score_drivers['ai_fit']}")
         st.markdown(f"**Commercial:** {score_drivers['commercial']}")
         st.markdown(f"**Risk:** {score_drivers['risk']}")
