@@ -307,6 +307,9 @@ if submitted:
             
         decision_band = get_decision_band(build_readiness)
 
+        # Create bulleted lists for what to build and what not to build:
+        what_to_build_md = "\n".join([f"- {item}" for item in result["what_to_build"]])
+        what_not_to_build_md = "\n".join([f"- {item}" for item in result["what_not_to_build"]])
 
         # ------------------------------
         # Markdown version of result
@@ -346,10 +349,10 @@ if submitted:
         {result["risky_framing"]}
 
         ## What to Build
-        {chr(10).join([f"- {item}" for item in result['what_to_build']])}
+        {what_to_build_md}
 
         ## What Not to Build
-        {chr(10).join([f"- {item}" for item in result['what_not_to_build']])}
+        {what_not_to_build_md}
 
         ## Human Checkpoint
         {result["human_checkpoint"]}
