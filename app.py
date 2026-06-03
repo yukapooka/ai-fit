@@ -307,6 +307,68 @@ if submitted:
             
         decision_band = get_decision_band(build_readiness)
 
+
+        # ------------------------------
+        # Markdown version of result
+        # ------------------------------
+        markdown_output = f"""
+        # AIFit Result
+
+        ## Feature
+        {selected_case}
+
+        ## Recommendation
+        {result['recommendation']}
+
+        ## Build Readiness
+        {build_readiness:.0f}/100
+
+        ## Decision Band
+        {decision_band}
+
+        ## Score Snapshot
+        - AI Fit: {ai_fit}/100
+        - Commercial Upside: {commercial_upside}/100
+        - Risk Burden: {risk_burden}/100
+        - Evidence Readiness: {evidence_readiness}/100
+        - Confidence: {result['confidence']}
+
+        ## Core Tension
+        {result["core_tension"]}
+
+        ## Useful Kernel
+        {result["useful_kernel"]}
+
+        ## Commercial Value Worth Preserving
+        {result["commercial_value"]}
+
+        ## Risky Framing
+        {result["risky_framing"]}
+
+        ## What to Build
+        {chr(10).join([f"- {item}" for item in result['what_to_build']])}
+
+        ## What Not to Build
+        {chr(10).join([f"- {item}" for item in result['what_not_to_build']])}
+
+        ## Human Checkpoint
+        {result["human_checkpoint"]}
+
+        ## Next Validatioon Step
+        {result["next_validation_step"]}
+        """
+
+        # Add a button to copy/download markdown output:
+        st.subheader("Copy result as Markdown")
+        st.text_area("Markdown output", markdown_output, height=400)
+
+        st.download_button(
+            label = "Download Markdown",
+            data=markdown_output,
+            file_name=f"{selected_case.lower().replace(' ','_')}_aifit_result.md",
+            mime="text/markdown"
+        )
+
         # ------------------------------
         # One-page result card
         # ------------------------------
