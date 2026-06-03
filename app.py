@@ -314,61 +314,66 @@ if submitted:
         # ------------------------------
         # Markdown version of result
         # ------------------------------
-        markdown_output = f"""
-        # AIFit Result
+        what_to_build_md = [f"- {item}" for item in result["what_to_build"]]
+        what_not_to_build_md = [f"- {item}" for item in result["what_not_to_build"]]
 
-        ## Feature
-        {selected_case}
+        markdown_lines = [
+            "# AIFit Result",
+            "",
+            "## Feature",
+            selected_case,
+            "",
+            "## Recommendation",
+            result["recommendation"],
+            "",
+            "## Build Readiness",
+            f"{build_readiness:.0f}/100",
+            "",
+            "## Decision Band",
+            decision_band,
+            "",
+            "## Score Snapshot",
+            f"- AI Fit: {ai_fit}/100",
+            f"- Commercial Upside: {commercial_upside}/100",
+            f"- Risk Burden: {risk_burden}/100",
+            f"- Evidence Readiness: {evidence_readiness}/100",
+            f"- Confidence: {result['confidence']}",
+            "",
+            "## Core Tension",
+            result["core_tension"],
+            "",
+            "## Useful Kernel",
+            result["useful_kernel"],
+            "",
+            "## Commercial Value Worth Preserving",
+            result["commercial_value"],
+            "",
+            "## Risky Framing",
+            result["risky_framing"],
+            "",
+            "## What to Build",
+            *what_to_build_md,
+            "",
+            "## What Not to Build",
+            *what_not_to_build_md,
+            "",
+            "## Human Checkpoint",
+            result["human_checkpoint"],
+            "",
+            "## Next Validation Step",
+            result["next_validation_step"],
+        ]
 
-        ## Recommendation
-        {result['recommendation']}
-
-        ## Build Readiness
-        {build_readiness:.0f}/100
-
-        ## Decision Band
-        {decision_band}
-
-        ## Score Snapshot
-        - AI Fit: {ai_fit}/100
-        - Commercial Upside: {commercial_upside}/100
-        - Risk Burden: {risk_burden}/100
-        - Evidence Readiness: {evidence_readiness}/100
-        - Confidence: {result['confidence']}
-
-        ## Core Tension
-        {result["core_tension"]}
-
-        ## Useful Kernel
-        {result["useful_kernel"]}
-
-        ## Commercial Value Worth Preserving
-        {result["commercial_value"]}
-
-        ## Risky Framing
-        {result["risky_framing"]}
-
-        ## What to Build
-        {what_to_build_md}
-
-        ## What Not to Build
-        {what_not_to_build_md}
-
-        ## Human Checkpoint
-        {result["human_checkpoint"]}
-
-        ## Next Validatioon Step
-        {result["next_validation_step"]}
-        """
+        markdown_output = "\n".join(markdown_lines)
 
         # Add a button to copy/download markdown output:
         st.subheader("Copy result as Markdown")
         st.text_area("Markdown output", markdown_output, height=400)
 
         st.download_button(
-            label = "Download Markdown",
+            label="Download Markdown",
             data=markdown_output,
-            file_name=f"{selected_case.lower().replace(' ','_')}_aifit_result.md",
+            file_name=f"{selected_case.lower().replace(' ', '_')}_aifit_result.md",
             mime="text/markdown"
         )
 
