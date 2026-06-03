@@ -453,3 +453,67 @@ if submitted:
         st.subheader("Next validation step")
         st.write(result["next_validation_step"])
 
+# -----------------------------
+# LLM prompt and schema
+# -----------------------------
+
+# Define schema of json output:
+AIFIT_JSON_SCHEMA = {
+    "recommendation": "",
+    "core_tension": "",
+    "ai_fit": 0,
+    "commercial_upside": 0,
+    "risk_burden": 0,
+    "evidence_readiness": 0,
+    "confidence": "",
+    "score_drivers": {
+        "ai_fit": "",
+        "commercial": "",
+        "risk": "",
+        "evidence": ""
+    },
+    "useful_kernel": "",
+    "commercial_value": "",
+    "risky_framing": "",
+    "what_to_build": [],
+    "what_not_to_build": [],
+    "human_checkpoint": "",
+    "next_validation_step": ""
+}
+
+#Define a prompt builder function:
+def build_aifit_prompt(user_inputs):
+    return f"""
+You are an experienced AI product manager specializing in responsible AI product launches.
+
+Evaluate the proposed AI feature using the AIFit framework.
+
+Return only valid JSON. Do not include markdown or commentary.
+
+Evaluate:
+- AI Fit: Does AI add meaningful value beyond a simpler solution?
+- Commercial Upside: Does this feature create meaningful business value?
+- Risk Burden: How much harm, sensitivity, or governance effort does this introduce?
+- Evidence Readiness: Can the team test this responsibly before launch?
+
+Use these recommendations:
+- Build / advance
+- Prototype first
+- Narrow scope before prototype
+- Rework
+- Avoid / rethink
+
+Be concise. Make the output practical for product managers.
+
+Feature information:
+Feature idea: {user_inputs["feature_idea"]}
+Target user: {user_inputs["target_user"]}
+User problem: {user_inputs["user_problem"]}
+Proposed AI capability: {user_inputs["ai_capability"]}
+Current non-AI alternative: {user_inputs["non_ai_alternative"]}
+Human decision influenced: {user_inputs["human_decision"]}
+Impact if wrong: {user_inputs["impact_if_wrong"]}
+Data sensitivity: {user_inputs["data_sensitivity"]}
+Business value: {user_inputs["business_value"]}
+Success metric: {user_inputs["success_metric"]}
+"""
