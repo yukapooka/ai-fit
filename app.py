@@ -205,41 +205,75 @@ AIFIT_JSON_SCHEMA = {
 def build_aifit_prompt(user_inputs):
     return f"""
 You are an experienced AI product manager specializing in responsible AI product launches.
-
 Evaluate the proposed AI feature using the AIFit framework.
 
-Return only valid JSON.
-
-Use the exact top-level keys.
-
+Return one JSON object only. Do not include text before or after the JSON.
+You must fill every field with useful, product-specific content.
+Do not leave any field blank.
+Do not write "Not provided."
+Scores must be integers from 0 to 100.
+Do not include "/100", labels, or words in score fields.
+Use the exact top-level keys provided in the schema.
 Do not rename keys.
+Do not nest score drivers.
+Important scoring rule:
+The four score fields must be numeric integers only.
+Use:
+"ai_fit": 80
 
-Do not nest scores.
+Do not use:
+"ai_fit": "80/100"
+"ai_fit": "High"
+"ai_fit_driver": "AI is useful... 80"
+Do not place score numbers inside driver text.
+Driver fields should contain explanation only, no numeric score.
 
-Scores must be integers from 0 to 100.
+You must fill these fields separately:
+- ai_fit: integer from 0 to 100
+- ai_fit_driver: explanation sentence with no number
+- commercial_upside: integer from 0 to 100
+- commercial_driver: explanation sentence with no number
+- risk_burden: integer from 0 to 100
+- risk_driver: explanation sentence with no number
+- evidence_readiness: integer from 0 to 100
+- evidence_driver: explanation sentence with no number
 
-List fields must be arrays of strings.
-Evaluate:
-- AI Fit: Does AI add meaningful value beyond a simpler solution?
-- Commercial Upside: Does this feature create meaningful business value?
-- Risk Burden: How much harm, sensitivity, or governance effort does this introduce?
-- Evidence Readiness: Can the team test this responsibly before launch?
+For core_tension:
+Write one sentence in this format:
+"AI may [create specific product/user/business value], but may also [create specific risk or failure mode]."
 
-Scores must be integers from 0 to 100.
-Do not include "/100", labels, explanations, or words in score fields.
-Example: use "ai_fit": 72, not "ai_fit": "72/100" or "ai_fit": "High".
+For ai_fit_driver:
+Explain why AI is or is not meaningfully justified beyond a simpler solution.
 
-Use these recommendations:
-- Build / advance
-- Prototype first
-- Narrow scope before prototype
-- Rework
-- Avoid / rethink
+For commercial_driver:
+Explain the likely business value, such as adoption, retention, efficiency, differentiation, or revenue.
 
-Be concise. Make the output practical for product managers.
-You must fill every field. Do not leave any field blank. Do not write "Not provided" unless the user input is truly missing.
-For what_to_build and what_not_to_build, return 3 to 6 specific product-scope bullets.
-For useful_kernel, commercial_value, risky_framing, human_checkpoint, and next_validation_step, write one concrete sentence each.
+For risk_driver:
+Explain the main product, user, governance, or failure risk.
+
+For evidence_driver:
+Explain what makes this feature easy or hard to validate before launch.
+
+The following fields are required and must contain one concrete sentence each:
+"useful_kernel": What part of the idea is worth preserving for users?
+"commercial_value": What business value is worth preserving without increasing risk?
+"risky_framing": What product framing should the team avoid?
+"human_checkpoint": Which human reviewer must review the output before product decisions are made?
+Do not leave these fields blank.
+Do not write "Not provided."
+Do not rename these fields.
+
+Example:
+"useful_kernel": "Use AI to summarize support tickets, cluster recurring issues, and help humans identify patterns faster."
+"commercial_value": "Preserve operational efficiency and faster product feedback loops without automating roadmap prioritization."
+"risky_framing": "An AI system that directly decides which customer complaints should drive the roadmap."
+"human_checkpoint": "Support leads and product managers should review AI escalation suggestions before they influence roadmap discussions."
+
+For what_to_build and what_not_to_build:
+Return 3 to 6 specific product-scope bullets each.
+
+For next_validation_step:
+Give one concrete test the product team should run next.
 
 Feature information:
 Feature idea: {user_inputs["feature_idea"]}
@@ -253,7 +287,6 @@ Data sensitivity: {user_inputs["data_sensitivity"]}
 Business value: {user_inputs["business_value"]}
 Success metric: {user_inputs["success_metric"]}
 
-Return one JSON object only. Do not include any text before or after the JSON.
 """
 
 # extract only the JSON object before parsing, avoid extra text:
@@ -450,12 +483,12 @@ def normalize_llm_result(result):
         "commercial_driver": "Commercial upside requires review because the model did not explain business value clearly.",
         "risk_driver": "Risk burden requires review because the model did not identify the main failure mode clearly.",
         "evidence_driver": "Evidence readiness requires review because the model did not specify how this feature should be tested.",
-        "useful_kernel": "Not provided.",
-        "commercial_value": "Not provided.",
-        "risky_framing": "Not provided.",
+        "useful_kernel": "Use AI to support human review by summarizing information, surfacing patterns, and helping teams make better-informed decisions.",
+        "commercial_value": "Preserve efficiency, differentiation, and faster decision-making without removing human accountability.",
+        "risky_framing": "An AI system that replaces human judgment or presents its recommendations as final decisions.",
+        "human_checkpoint": "A responsible human reviewer should assess the AI output before it influences product, user, or business decisions.",
         "what_to_build": ["Not provided."],
         "what_not_to_build": ["Not provided."],
-        "human_checkpoint": "Not provided.",
         "next_validation_step": "Not provided.",
     }
 
@@ -471,6 +504,39 @@ def normalize_llm_result(result):
         elif not isinstance(result[key], list):
             result[key] = ["Not provided."]
     return result
+
+    score_keys = ["ai_fit", "commercial_upside", "risk_burden", "evidence_readiness"]
+    missing_score_keys = [
+        key for key in score_keys
+        if key not in result or result[key] in ["", None]
+    ]
+
+    if missing_score_keys:
+        st.warning(
+            f"LLM output was missing score fields: {missing_score_keys}. "
+            "Scores may be unreliable."
+        )
+    
+    quality_fields = [
+    "core_tension",
+    "useful_kernel",
+    "commercial_value",
+    "risky_framing",
+    "human_checkpoint",
+    "next_validation_step",
+    ]
+
+    weak_fields = [
+        key for key in quality_fields
+        if result[key] in ["Not provided.", "Not provided", "", None]
+    ]
+
+    if weak_fields:
+        st.warning(
+            f"LLM output is incomplete for: {weak_fields}. "
+            "Try regenerating or improving the prompt."
+        )
+
 
 
 if submitted:
