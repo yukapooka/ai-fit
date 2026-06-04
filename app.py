@@ -1,4 +1,6 @@
 import streamlit as st
+import json
+import requests
 
 # ------------------------------
 # Page configuration
@@ -8,21 +10,6 @@ st.set_page_config(
     page_icon="🚀",
     layout="wide"
 )
-
-
-# ------------------------------
-# App header
-# ------------------------------
-st.title("AIFit")
-st.subheader("An AI product decision tool")
-
-st.markdown(
-    """
-    AIFit helps product teams evaluate whether an AI feature is worth building, narrowing, prototyping, or avoiding by balancing AI fit, commercial potential, risk burden, and evidence readiness.
-    """
-)
-
-st.divider()
 
 # ------------------------------
 # Example test cases
@@ -188,6 +175,135 @@ sample_outputs = {
     }
 }
 
+# -----------------------------
+# LLM prompt and schema
+# -----------------------------
+
+# Define schema of json output:
+AIFIT_JSON_SCHEMA = {
+    "recommendation": "string",
+    "core_tension": "string",
+    "ai_fit": 0,
+    "commercial_upside": 0,
+    "risk_burden": 0,
+    "evidence_readiness": 0,
+    "confidence": "Low | Low-Medium | Medium | Medium-High | High",
+    "ai_fit_driver": "string",
+    "commercial_driver": "string",
+    "risk_driver": "string",
+    "evidence_driver": "string",
+    "useful_kernel": "string",
+    "commercial_value": "string",
+    "risky_framing": "string",
+    "what_to_build": ["string"],
+    "what_not_to_build": ["string"],
+    "human_checkpoint": "string",
+    "next_validation_step": "string"
+}
+
+# Define a prompt builder function:
+def build_aifit_prompt(user_inputs):
+    return f"""
+You are an experienced AI product manager specializing in responsible AI product launches.
+
+Evaluate the proposed AI feature using the AIFit framework.
+
+Return only valid JSON.
+
+Use the exact top-level keys.
+
+Do not rename keys.
+
+Do not nest scores.
+
+Scores must be integers from 0 to 100.
+
+List fields must be arrays of strings.
+Evaluate:
+- AI Fit: Does AI add meaningful value beyond a simpler solution?
+- Commercial Upside: Does this feature create meaningful business value?
+- Risk Burden: How much harm, sensitivity, or governance effort does this introduce?
+- Evidence Readiness: Can the team test this responsibly before launch?
+
+Scores must be integers from 0 to 100.
+Do not include "/100", labels, explanations, or words in score fields.
+Example: use "ai_fit": 72, not "ai_fit": "72/100" or "ai_fit": "High".
+
+Use these recommendations:
+- Build / advance
+- Prototype first
+- Narrow scope before prototype
+- Rework
+- Avoid / rethink
+
+Be concise. Make the output practical for product managers.
+You must fill every field. Do not leave any field blank. Do not write "Not provided" unless the user input is truly missing.
+For what_to_build and what_not_to_build, return 3 to 6 specific product-scope bullets.
+For useful_kernel, commercial_value, risky_framing, human_checkpoint, and next_validation_step, write one concrete sentence each.
+
+Feature information:
+Feature idea: {user_inputs["feature_idea"]}
+Target user: {user_inputs["target_user"]}
+User problem: {user_inputs["user_problem"]}
+Proposed AI capability: {user_inputs["ai_capability"]}
+Current non-AI alternative: {user_inputs["non_ai_alternative"]}
+Human decision influenced: {user_inputs["human_decision"]}
+Impact if wrong: {user_inputs["impact_if_wrong"]}
+Data sensitivity: {user_inputs["data_sensitivity"]}
+Business value: {user_inputs["business_value"]}
+Success metric: {user_inputs["success_metric"]}
+
+Return one JSON object only. Do not include any text before or after the JSON.
+"""
+
+# extract only the JSON object before parsing, avoid extra text:
+def extract_json_object(text):
+    """
+    Extract the first JSON object from model output.
+    Handles cases where the model adds text before or after the JSON.
+    """
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        raise ValueError("No valid JSON object found in model output.")
+    json_text = text[start:end + 1]
+    return json.loads(json_text)
+
+def generate_llm_result(user_inputs):
+    api_key = st.secrets["OPENROUTER_API_KEY"]
+    prompt = build_aifit_prompt(user_inputs)
+    response = requests.post(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:8501",
+            "X-Title": "AIFit",
+        },
+        json={
+            "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            "temperature": 0.2,
+        },
+        timeout=60,
+    )
+    if response.status_code != 200:
+        st.error("OpenRouter request failed")
+        st.write("Status code:", response.status_code)
+        st.write("Response body:", response.text)
+        response.raise_for_status()
+    content = response.json()["choices"][0]["message"]["content"]
+    content = content.strip()
+    if content.startswith("```json"):
+        content = content.replace("```json", "").replace("```", "").strip()
+    elif content.startswith("```"):
+        content = content.replace("```", "").strip()
+    return extract_json_object(content)
 
 # ------------------------------
 # Sidebar example selector
@@ -199,6 +315,20 @@ selected_case = st.sidebar.selectbox(
 )
 
 case = example_cases[selected_case]
+
+# ------------------------------
+# App header
+# ------------------------------
+st.title("AIFit")
+st.subheader("An AI product decision tool")
+
+st.markdown(
+    """
+    AIFit helps product teams evaluate whether an AI feature is worth building, narrowing, prototyping, or avoiding by balancing AI fit, commercial potential, risk burden, and evidence readiness.
+    """
+)
+
+st.divider()
 
 # ------------------------------
 # Input form
@@ -266,254 +396,284 @@ with st.form("feature_form"):
 # -----------------------------
 # Output results
 # -----------------------------
+def parse_score(value):
+    """
+    Convert LLM score outputs into integers.
+    Handles values like 72, "72", "72/100", or "AI Fit: 72".
+    """
+    if isinstance(value, int) or isinstance(value, float):
+        return int(value)
+
+    if isinstance(value, str):
+        digits = "".join([char for char in value if char.isdigit()])
+        if digits:
+            return int(digits[:3]) if int(digits[:3]) <= 100 else 100
+
+    return 0
+
+# normalization step after LLM returns result - useful when the model misses or renames fields:
+def normalize_llm_result(result):
+    """
+    Ensure the LLM result has all required keys.
+    Handles both old nested score_drivers format and new flattened driver fields.
+    """
+    # If model returns the old nested score_drivers format, map it to flat fields.
+    score_drivers = result.get("score_drivers", {})
+
+    if isinstance(score_drivers, dict):
+        result["ai_fit_driver"] = score_drivers.get(
+            "ai_fit",
+            result.get("ai_fit_driver", "")
+        )
+        result["commercial_driver"] = score_drivers.get(
+            "commercial",
+            result.get("commercial_driver", "")
+        )
+        result["risk_driver"] = score_drivers.get(
+            "risk",
+            result.get("risk_driver", "")
+        )
+        result["evidence_driver"] = score_drivers.get(
+            "evidence",
+            result.get("evidence_driver", "")
+        )
+
+    defaults = {
+        "recommendation": "Review manually — incomplete model output.",
+        "core_tension": "AI may create product value, but the current framing needs further review for user risk, evidence quality, and human oversight.",
+        "ai_fit": 0,
+        "commercial_upside": 0,
+        "risk_burden": 0,
+        "evidence_readiness": 0,
+        "confidence": "Low",
+        "ai_fit_driver": "AI fit requires review because the model did not explain whether AI adds value beyond simpler alternatives.",
+        "commercial_driver": "Commercial upside requires review because the model did not explain business value clearly.",
+        "risk_driver": "Risk burden requires review because the model did not identify the main failure mode clearly.",
+        "evidence_driver": "Evidence readiness requires review because the model did not specify how this feature should be tested.",
+        "useful_kernel": "Not provided.",
+        "commercial_value": "Not provided.",
+        "risky_framing": "Not provided.",
+        "what_to_build": ["Not provided."],
+        "what_not_to_build": ["Not provided."],
+        "human_checkpoint": "Not provided.",
+        "next_validation_step": "Not provided.",
+    }
+
+    # Fill missing or empty top-level keys.
+    for key, default_value in defaults.items():
+        if key not in result or result[key] in ["", None]:
+            result[key] = default_value
+
+    # Ensure list fields are lists.
+    for key in ["what_to_build", "what_not_to_build"]:
+        if isinstance(result[key], str):
+            result[key] = [result[key]]
+        elif not isinstance(result[key], list):
+            result[key] = ["Not provided."]
+    return result
+
+
 if submitted:
     st.divider()
     st.header("2.Evaluation results")
     
+    user_inputs={
+        "feature_idea": feature_idea,
+        "target_user": target_user,
+        "user_problem": user_problem,
+        "ai_capability": ai_capability,
+        "non_ai_alternative": non_ai_alternative,
+        "human_decision": human_decision,
+        "impact_if_wrong": impact_if_wrong,
+        "data_sensitivity": data_sensitivity,
+        "business_value": business_value,
+        "success_metric": success_metric,
+    }
+
     # Handle blank case first:
     if selected_case == "Start from blank":
-        st.warning("Custom LLM-generated results will be added in the next version. For now, choose one of the sample cases.")
+        with st.spinner("Generating AIFit assessment..."):
+            try:
+                result = generate_llm_result(user_inputs)
+                st.success("LLM result received.")
+                #st.write("Raw result:", result)
+            except Exception as e:
+                st.error(f"Could not generate LLM result: {e}")
+                st.stop()
     else:
-        #Pull the selected sample result:
         result = sample_outputs[selected_case]
+    
+    # Call normalizer
+    result = normalize_llm_result(result)
 
-        result = sample_outputs[selected_case]
+    ai_fit = parse_score(result["ai_fit"])
+    commercial_upside = parse_score(result["commercial_upside"])
+    risk_burden = parse_score(result["risk_burden"])
+    evidence_readiness = parse_score(result["evidence_readiness"])
 
-        ai_fit = result["ai_fit"]
-        commercial_upside = result["commercial_upside"]
-        risk_burden = result["risk_burden"]
-        evidence_readiness = result["evidence_readiness"]
-
-        #calculate build readiness score:
-        risk_adjustment = 100-risk_burden
-        build_readiness = (
-            ai_fit * 0.3 +
-            commercial_upside * 0.25 +
-            evidence_readiness * 0.25 +
-            risk_adjustment * 0.2       
-        )
+    #calculate build readiness score:
+    risk_adjustment = 100-risk_burden
+    build_readiness = (
+        ai_fit * 0.3 +
+        commercial_upside * 0.25 +
+        evidence_readiness * 0.25 +
+        risk_adjustment * 0.2       
+    )
+    
+    def get_decision_band(score):
+        if score >= 80:
+            return "Yes - Build/advance"
+        elif score >=65:
+            return "Yes, but prototype first"
+        elif score >=50:
+            return "Maybe - narrow scope"
+        elif score >=35:
+            return "Not yet - rework"
+        else:
+            return "No - avoid/rethink"
         
-        def get_decision_band(score):
-            if score >= 80:
-                return "Yes - Build/advance"
-            elif score >=65:
-                return "Yes, but prototype first"
-            elif score >=50:
-                return "Maybe - narrow scope"
-            elif score >=35:
-                return "Not yet - rework"
-            else:
-                return "No - avoid/rethink"
-            
-        decision_band = get_decision_band(build_readiness)
+    decision_band = get_decision_band(build_readiness)
 
-        # Create bulleted lists for what to build and what not to build:
-        what_to_build_md = "\n".join([f"- {item}" for item in result["what_to_build"]])
-        what_not_to_build_md = "\n".join([f"- {item}" for item in result["what_not_to_build"]])
+    # Create bulleted lists for what to build and what not to build:
+    what_to_build_md = "\n".join([f"- {item}" for item in result["what_to_build"]])
+    what_not_to_build_md = "\n".join([f"- {item}" for item in result["what_not_to_build"]])
 
-        # ------------------------------
-        # Markdown version of result
-        # ------------------------------
-        what_to_build_md = [f"- {item}" for item in result["what_to_build"]]
-        what_not_to_build_md = [f"- {item}" for item in result["what_not_to_build"]]
+    # ------------------------------
+    # Markdown version of result
+    # ------------------------------
+    what_to_build_md = [f"- {item}" for item in result["what_to_build"]]
+    what_not_to_build_md = [f"- {item}" for item in result["what_not_to_build"]]
 
-        markdown_lines = [
-            "# AIFit Result",
-            "",
-            "## Feature",
-            selected_case,
-            "",
-            "## Recommendation",
-            result["recommendation"],
-            "",
-            "## Build Readiness",
-            f"{build_readiness:.0f}/100",
-            "",
-            "## Decision Band",
-            decision_band,
-            "",
-            "## Score Snapshot",
-            f"- AI Fit: {ai_fit}/100",
-            f"- Commercial Upside: {commercial_upside}/100",
-            f"- Risk Burden: {risk_burden}/100",
-            f"- Evidence Readiness: {evidence_readiness}/100",
-            f"- Confidence: {result['confidence']}",
-            "",
-            "## Core Tension",
-            result["core_tension"],
-            "",
-            "## Useful Kernel",
-            result["useful_kernel"],
-            "",
-            "## Commercial Value Worth Preserving",
-            result["commercial_value"],
-            "",
-            "## Risky Framing",
-            result["risky_framing"],
-            "",
-            "## What to Build",
-            *what_to_build_md,
-            "",
-            "## What Not to Build",
-            *what_not_to_build_md,
-            "",
-            "## Human Checkpoint",
-            result["human_checkpoint"],
-            "",
-            "## Next Validation Step",
-            result["next_validation_step"],
-        ]
+    markdown_lines = [
+        "# AIFit Result",
+        "",
+        "## Feature",
+        selected_case,
+        "",
+        "## Recommendation",
+        result["recommendation"],
+        "",
+        "## Build Readiness",
+        f"{build_readiness:.0f}/100",
+        "",
+        "## Decision Band",
+        decision_band,
+        "",
+        "## Score Snapshot",
+        f"- AI Fit: {ai_fit}/100",
+        f"- Commercial Upside: {commercial_upside}/100",
+        f"- Risk Burden: {risk_burden}/100",
+        f"- Evidence Readiness: {evidence_readiness}/100",
+        f"- Confidence: {result['confidence']}",
+        "",
+        "## Core Tension",
+        result["core_tension"],
+        "",
+        "## Useful Kernel",
+        result["useful_kernel"],
+        "",
+        "## Commercial Value Worth Preserving",
+        result["commercial_value"],
+        "",
+        "## Risky Framing",
+        result["risky_framing"],
+        "",
+        "## What to Build",
+        *what_to_build_md,
+        "",
+        "## What Not to Build",
+        *what_not_to_build_md,
+        "",
+        "## Human Checkpoint",
+        result["human_checkpoint"],
+        "",
+        "## Next Validation Step",
+        result["next_validation_step"],
+    ]
 
-        markdown_output = "\n".join(markdown_lines)
+    markdown_output = "\n".join(markdown_lines)
 
-        # Add a button to copy/download markdown output:
-        st.subheader("Copy result as Markdown")
-        st.text_area("Markdown output", markdown_output, height=400)
+    # Add a button to copy/download markdown output:
+    st.subheader("Copy result as Markdown")
+    st.text_area("Markdown output", markdown_output, height=400)
 
-        st.download_button(
-            label="Download Markdown",
-            data=markdown_output,
-            file_name=f"{selected_case.lower().replace(' ', '_')}_aifit_result.md",
-            mime="text/markdown"
-        )
+    st.download_button(
+        label="Download Markdown",
+        data=markdown_output,
+        file_name=f"{selected_case.lower().replace(' ', '_')}_aifit_result.md",
+        mime="text/markdown"
+    )
 
-        # ------------------------------
-        # One-page result card
-        # ------------------------------
-        st.subheader("Recommendation")
-        st.markdown(f"**{result['recommendation']}**")
+    # ------------------------------
+    # One-page result card
+    # ------------------------------
+    st.subheader("Recommendation")
+    st.markdown(f"**{result['recommendation']}**")
 
-        st.markdown(f"**Decision band:** {decision_band}")
+    st.markdown(f"**Decision band:** {decision_band}")
 
-        #Score snapshot
-        col1, col2, col3, col4, col5 = st.columns(5)
+    #Score snapshot
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-        col1.metric("Build Readiness", f"{build_readiness:.0f}/100",
-                    help="Overall readiness to move forward, balancing AI fit, business value, evidence readiness, and risk burden.")
-        col2.metric("AI Fit", f"{ai_fit}/100",
-                    help="Does AI add meaningful value beyond a simpler solution?")
-        col3.metric("Commercial Upside", f"{commercial_upside}/100",
-                    help="Does this feature create meaningful business value through adoption, retention, revenue, differentiation, or efficiency?")
-        col4.metric("Risk Burden", f"{risk_burden}/100",
-                    help="How much harm, sensitivity, or governance effort does this introduce?")
-        col5.metric("Evidence Readiness", f"{evidence_readiness}/100",
-                    help="Can the team test this responsibly before launch?")
+    col1.metric("Build Readiness", f"{build_readiness:.0f}/100",
+                help="Overall readiness to move forward, balancing AI fit, business value, evidence readiness, and risk burden.")
+    col2.metric("AI Fit", f"{ai_fit}/100",
+                help="Does AI add meaningful value beyond a simpler solution?")
+    col3.metric("Commercial Upside", f"{commercial_upside}/100",
+                help="Does this feature create meaningful business value through adoption, retention, revenue, differentiation, or efficiency?")
+    col4.metric("Risk Burden", f"{risk_burden}/100",
+                help="How much harm, sensitivity, or governance effort does this introduce?")
+    col5.metric("Evidence Readiness", f"{evidence_readiness}/100",
+                help="Can the team test this responsibly before launch?")
 
-        st.markdown(f"**Confidence:** {result['confidence']}")
+    st.markdown(f"**Confidence:** {result['confidence']}")
 
-        st.divider()
+    st.divider()
 
-        # Core tension
-        st.subheader("Core tension")
-        st.write(result["core_tension"])
+    # Core tension
+    st.subheader("Core tension")
+    st.write(result["core_tension"])
 
-        # Score drivers
-        st.subheader("Score drivers")
-        #st.write(result["score_drivers"])
+    # Score drivers
+    st.subheader("Score drivers")
+    st.markdown(f"**AI Fit:** {result['ai_fit_driver']}")
+    st.markdown(f"**Commercial:** {result['commercial_driver']}")
+    st.markdown(f"**Risk:** {result['risk_driver']}")
+    st.markdown(f"**Evidence:** {result['evidence_driver']}")
 
-        score_drivers = result["score_drivers"]
-        st.markdown(f"**AI Fit:** {score_drivers['ai_fit']}")
-        st.markdown(f"**Commercial:** {score_drivers['commercial']}")
-        st.markdown(f"**Risk:** {score_drivers['risk']}")
-        st.markdown(f"**Evidence:** {score_drivers['evidence']}")
+    # Useful kernel / commercial value / risky framing
+    col_a, col_b, col_c = st.columns(3)
 
-        # Useful kernel / commercial value / risky framing
-        col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        st.subheader("Useful kernel")
+        st.write(result["useful_kernel"])
 
-        with col_a:
-            st.subheader("Useful kerenel")
-            st.write(result["useful_kernel"])
+    with col_b:
+        st.subheader("Commercial value")
+        st.write(result["commercial_value"])
 
-        with col_b:
-            st.subheader("Commercial value")
-            st.write(result["commercial_value"])
+    with col_c:
+        st.subheader("Risky framing to avoid")
+        st.write(result["risky_framing"])
+    
+    # What to build / not build
+    col_build, col_not_build = st.columns(2)
 
-        with col_c:
-            st.subheader("Risky framing to avoid")
-            st.write(result["risky_framing"])
+    with col_build:
+        st.subheader("What to build")
+        for item in result["what_to_build"]:
+            st.markdown(f"- {item}")
         
-        # What to build / not build
-        col_build, col_not_build = st.columns(2)
-
-        with col_build:
-            st.subheader("What to build")
-            for item in result["what_to_build"]:
+        with col_not_build:
+            st.subheader("What not to build")
+            for item in result["what_not_to_build"]:
                 st.markdown(f"- {item}")
-            
-            with col_not_build:
-                st.subheader("What not to build")
-                for item in result["what_not_to_build"]:
-                    st.markdown(f"- {item}")
-        
-        # Human checkpoint
-        st.subheader("Human checkpoint")
-        st.write(result["human_checkpoint"])
+    
+    # Human checkpoint
+    st.subheader("Human checkpoint")
+    st.write(result["human_checkpoint"])
 
-        # Next validation step
-        st.subheader("Next validation step")
-        st.write(result["next_validation_step"])
+    # Next validation step
+    st.subheader("Next validation step")
+    st.write(result["next_validation_step"])
 
-# -----------------------------
-# LLM prompt and schema
-# -----------------------------
-
-# Define schema of json output:
-AIFIT_JSON_SCHEMA = {
-    "recommendation": "",
-    "core_tension": "",
-    "ai_fit": 0,
-    "commercial_upside": 0,
-    "risk_burden": 0,
-    "evidence_readiness": 0,
-    "confidence": "",
-    "score_drivers": {
-        "ai_fit": "",
-        "commercial": "",
-        "risk": "",
-        "evidence": ""
-    },
-    "useful_kernel": "",
-    "commercial_value": "",
-    "risky_framing": "",
-    "what_to_build": [],
-    "what_not_to_build": [],
-    "human_checkpoint": "",
-    "next_validation_step": ""
-}
-
-#Define a prompt builder function:
-def build_aifit_prompt(user_inputs):
-    return f"""
-You are an experienced AI product manager specializing in responsible AI product launches.
-
-Evaluate the proposed AI feature using the AIFit framework.
-
-Return only valid JSON. Do not include markdown or commentary.
-
-Evaluate:
-- AI Fit: Does AI add meaningful value beyond a simpler solution?
-- Commercial Upside: Does this feature create meaningful business value?
-- Risk Burden: How much harm, sensitivity, or governance effort does this introduce?
-- Evidence Readiness: Can the team test this responsibly before launch?
-
-Use these recommendations:
-- Build / advance
-- Prototype first
-- Narrow scope before prototype
-- Rework
-- Avoid / rethink
-
-Be concise. Make the output practical for product managers.
-
-Feature information:
-Feature idea: {user_inputs["feature_idea"]}
-Target user: {user_inputs["target_user"]}
-User problem: {user_inputs["user_problem"]}
-Proposed AI capability: {user_inputs["ai_capability"]}
-Current non-AI alternative: {user_inputs["non_ai_alternative"]}
-Human decision influenced: {user_inputs["human_decision"]}
-Impact if wrong: {user_inputs["impact_if_wrong"]}
-Data sensitivity: {user_inputs["data_sensitivity"]}
-Business value: {user_inputs["business_value"]}
-Success metric: {user_inputs["success_metric"]}
-"""
