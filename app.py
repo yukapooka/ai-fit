@@ -76,10 +76,10 @@ sample_outputs = {
         "evidence_readiness":55,
         "confidence":"Medium",
         "score_drivers":{
-            "ai_fit":"Strong use case for synthesizing messy qualitative research and surfacing assumptions.",
-            "commercial":"Could reduce discovery time, improve PM/researcher productivity, and differentiate research tooling.",
-            "risk":"High risk of false validation if synthetic persona responses are treated as real user evidence.",
-            "evidence":"Validation is possible, but requires comparison against real user feedback and researcher judgment."
+            "ai_fit_driver":"Strong use case for synthesizing messy qualitative research and surfacing assumptions.",
+            "commercial_driver":"Could reduce discovery time, improve PM/researcher productivity, and differentiate research tooling.",
+            "risk_driver":"High risk of false validation if synthetic persona responses are treated as real user evidence.",
+            "evidence_driver":"Validation is possible, but requires comparison against real user feedback and researcher judgment."
         },
         "useful_kernel":"Use AI to synthesize existing research, surface assumptions, identify missing user segments, and generate better research questions.",
         "commercial_value":"Could reduce discovery time, improve PM/researcher productivity, and differentiate research tooling.",
@@ -110,10 +110,10 @@ sample_outputs = {
         "evidence_readiness":48,
         "confidence":"Medium-Low",
         "score_drivers":{
-            "ai_fit":"AI can personalize tone, timing, and reflective prompts, but simpler reminders or journaling tools may solve part of the need.",
-            "commercial":"Could support retention and emotional engagement, but monetization is ethically sensitive.",
-            "risk":"High emotional vulnerability, dependency risk, crisis escalation risk, and unsafe support-boundary concerns.",
-            "evidence":"Expert review is possible, but long-term emotional safety and dependency risk are difficult to validate."
+            "ai_fit_driver":"AI can personalize tone, timing, and reflective prompts, but simpler reminders or journaling tools may solve part of the need.",
+            "commercial_driver":"Could support retention and emotional engagement, but monetization is ethically sensitive.",
+            "risk_driver":"High emotional vulnerability, dependency risk, crisis escalation risk, and unsafe support-boundary concerns.",
+            "evidence_driver":"Expert review is possible, but long-term emotional safety and dependency risk are difficult to validate."
         },
         "useful_kernel":"Use AI to offer gentle, user-controlled reflection prompts and supportive messages during difficult dates or moments.",
         "commercial_value":"A differentiated emotional wellbeing experience, higher user trust through sensitive design, and potential retention through opt-in reflective rituals rather than addictive engagement loops.",
@@ -146,10 +146,10 @@ sample_outputs = {
         "evidence_readiness":58,
         "confidence":"Low-Medium",
         "score_drivers":{
-            "ai_fit":"AI can personalize reflection, spending insights, and financial education, but many tracking and budgeting functions can be rule-based.",
-            "commercial":"High potential for engagement, retention, differentiated education journeys, and monetizable financial product pathways.",
-            "risk":"High risk of behavioral influence, financial vulnerability, shame-inducing labels, and incentive misalignment.",
-            "evidence":"Small-cohort testing is possible, but must test emotional safety, comprehension, pressure, bias, and conflicts of interest."
+            "ai_fit_driver":"AI can personalize reflection, spending insights, and financial education, but many tracking and budgeting functions can be rule-based.",
+            "commercial_driver":"High potential for engagement, retention, differentiated education journeys, and monetizable financial product pathways.",
+            "risk_driver":"High risk of behavioral influence, financial vulnerability, shame-inducing labels, and incentive misalignment.",
+            "evidence_driver":"Small-cohort testing is possible, but must test emotional safety, comprehension, pressure, bias, and conflicts of interest."
         },
         "useful_kernel":"Use AI to help users reflect on spending patterns, understand trade-offs, build financial confidence, and choose user-defined goals without assigning fixed identity labels.",
         "commercial_value":"Personalized goal journeys, habit-building loops, and educational pathways that increase retention without pushing unsuitable products.",
@@ -274,6 +274,10 @@ Return 3 to 6 specific product-scope bullets each.
 
 For next_validation_step:
 Give one concrete test the product team should run next.
+
+Output schema:
+The JSON object must follow this exact schema:
+{json.dumps(AIFIT_JSON_SCHEMA, indent=2)}
 
 Feature information:
 Feature idea: {user_inputs["feature_idea"]}
@@ -472,13 +476,13 @@ def normalize_llm_result(result):
         )
 
     defaults = {
-        "recommendation": "Review manually — incomplete model output.",
+        "recommendation": "",
         "core_tension": "AI may create product value, but the current framing needs further review for user risk, evidence quality, and human oversight.",
         "ai_fit": 0,
         "commercial_upside": 0,
         "risk_burden": 0,
         "evidence_readiness": 0,
-        "confidence": "Low",
+        "confidence": "",
         "ai_fit_driver": "AI fit requires review because the model did not explain whether AI adds value beyond simpler alternatives.",
         "commercial_driver": "Commercial upside requires review because the model did not explain business value clearly.",
         "risk_driver": "Risk burden requires review because the model did not identify the main failure mode clearly.",
@@ -504,40 +508,6 @@ def normalize_llm_result(result):
         elif not isinstance(result[key], list):
             result[key] = ["Not provided."]
     return result
-
-    score_keys = ["ai_fit", "commercial_upside", "risk_burden", "evidence_readiness"]
-    missing_score_keys = [
-        key for key in score_keys
-        if key not in result or result[key] in ["", None]
-    ]
-
-    if missing_score_keys:
-        st.warning(
-            f"LLM output was missing score fields: {missing_score_keys}. "
-            "Scores may be unreliable."
-        )
-    
-    quality_fields = [
-    "core_tension",
-    "useful_kernel",
-    "commercial_value",
-    "risky_framing",
-    "human_checkpoint",
-    "next_validation_step",
-    ]
-
-    weak_fields = [
-        key for key in quality_fields
-        if result[key] in ["Not provided.", "Not provided", "", None]
-    ]
-
-    if weak_fields:
-        st.warning(
-            f"LLM output is incomplete for: {weak_fields}. "
-            "Try regenerating or improving the prompt."
-        )
-
-
 
 if submitted:
     st.divider()
@@ -600,76 +570,58 @@ if submitted:
         
     decision_band = get_decision_band(build_readiness)
 
-    # Create bulleted lists for what to build and what not to build:
-    what_to_build_md = "\n".join([f"- {item}" for item in result["what_to_build"]])
-    what_not_to_build_md = "\n".join([f"- {item}" for item in result["what_not_to_build"]])
-
-    # ------------------------------
-    # Markdown version of result
-    # ------------------------------
-    what_to_build_md = [f"- {item}" for item in result["what_to_build"]]
-    what_not_to_build_md = [f"- {item}" for item in result["what_not_to_build"]]
-
-    markdown_lines = [
-        "# AIFit Result",
-        "",
-        "## Feature",
-        selected_case,
-        "",
-        "## Recommendation",
-        result["recommendation"],
-        "",
-        "## Build Readiness",
-        f"{build_readiness:.0f}/100",
-        "",
-        "## Decision Band",
-        decision_band,
-        "",
-        "## Score Snapshot",
-        f"- AI Fit: {ai_fit}/100",
-        f"- Commercial Upside: {commercial_upside}/100",
-        f"- Risk Burden: {risk_burden}/100",
-        f"- Evidence Readiness: {evidence_readiness}/100",
-        f"- Confidence: {result['confidence']}",
-        "",
-        "## Core Tension",
-        result["core_tension"],
-        "",
-        "## Useful Kernel",
-        result["useful_kernel"],
-        "",
-        "## Commercial Value Worth Preserving",
-        result["commercial_value"],
-        "",
-        "## Risky Framing",
-        result["risky_framing"],
-        "",
-        "## What to Build",
-        *what_to_build_md,
-        "",
-        "## What Not to Build",
-        *what_not_to_build_md,
-        "",
-        "## Human Checkpoint",
-        result["human_checkpoint"],
-        "",
-        "## Next Validation Step",
-        result["next_validation_step"],
+    # add recommendation fallback after build readiness is computed:
+    weak_recommendations = [
+    "",
+    None,
+    "Review manually",
+    "Review manually — incomplete model output.",
+    "Incomplete model output",
     ]
 
-    markdown_output = "\n".join(markdown_lines)
+    if result["recommendation"] in weak_recommendations:
+        if build_readiness >= 65:
+            result["recommendation"] = "Prototype first, with defined safeguards and validation."
+        elif build_readiness >= 50:
+            result["recommendation"] = "Narrow scope before prototype, with human review and validation."
+        elif build_readiness >= 35:
+            result["recommendation"] = "Rework the product framing before moving forward."
+        else:
+            result["recommendation"] = "Avoid or rethink the AI feature as currently framed."
 
-    # Add a button to copy/download markdown output:
-    st.subheader("Copy result as Markdown")
-    st.text_area("Markdown output", markdown_output, height=400)
+    score_keys = ["ai_fit", "commercial_upside", "risk_burden", "evidence_readiness"]
+    missing_score_keys = [
+        key for key in score_keys
+        if key not in result or result[key] in ["", None]
+    ]
 
-    st.download_button(
-        label="Download Markdown",
-        data=markdown_output,
-        file_name=f"{selected_case.lower().replace(' ', '_')}_aifit_result.md",
-        mime="text/markdown"
-    )
+    if missing_score_keys:
+        st.warning(
+            f"LLM output was missing score fields: {missing_score_keys}. "
+            "Scores may be unreliable.")
 
+    weak_fields = [
+        key for key in [
+            "core_tension",
+            "useful_kernel",
+            "commercial_value",
+            "risky_framing",
+            "human_checkpoint",
+            "next_validation_step",
+            "ai_fit_driver",
+            "commercial_driver",
+            "risk_driver",
+            "evidence_driver",
+        ]
+        if result[key] in ["", None, "Not provided.", "Not provided"]
+    ]
+    if result["confidence"] in ["", None, "Low"] and len(weak_fields) == 0:
+        result["confidence"] = "Medium"
+    elif result["confidence"] in ["", None]:
+        result["confidence"] = "Low"
+
+   
+ 
     # ------------------------------
     # One-page result card
     # ------------------------------
@@ -730,10 +682,10 @@ if submitted:
         for item in result["what_to_build"]:
             st.markdown(f"- {item}")
         
-        with col_not_build:
-            st.subheader("What not to build")
-            for item in result["what_not_to_build"]:
-                st.markdown(f"- {item}")
+    with col_not_build:
+        st.subheader("What not to build")
+        for item in result["what_not_to_build"]:
+            st.markdown(f"- {item}")
     
     # Human checkpoint
     st.subheader("Human checkpoint")
@@ -743,3 +695,95 @@ if submitted:
     st.subheader("Next validation step")
     st.write(result["next_validation_step"])
 
+    # ------------------------------
+    # Markdown version of result
+    # ------------------------------
+    what_to_build_md = [f"- {item}" for item in result["what_to_build"]]
+    what_not_to_build_md = [f"- {item}" for item in result["what_not_to_build"]]
+
+     # create filename for markdown file:
+    def make_safe_filename(text, max_length=35):
+        """
+        Create a short, safe filename from user-provided text.
+        """
+        text = text.lower().strip()
+        # Keep only letters, numbers, spaces, underscores, and hyphens
+        safe_chars = []
+        for char in text:
+            if char.isalnum() or char in [" ", "_", "-"]:
+                safe_chars.append(char)
+        filename = "".join(safe_chars)
+        # Replace spaces with underscores
+        filename = filename.replace(" ", "_")
+        # Collapse repeated underscores
+        while "__" in filename:
+            filename = filename.replace("__", "_")
+        # Truncate
+        filename = filename[:max_length].strip("_")
+        # Fallback if empty
+        if not filename:
+            filename = "aifit_result"
+        return filename
+    
+    display_feature = feature_idea if selected_case == "Start from blank" else selected_case
+    safe_filename = make_safe_filename(display_feature)
+
+    markdown_lines = [
+        "# AIFit Result",
+        "",
+        "## Feature",
+        display_feature,
+        "",
+        "## Recommendation",
+        result["recommendation"],
+        "",
+        "## Build Readiness",
+        f"{build_readiness:.0f}/100",
+        "",
+        "## Decision Band",
+        decision_band,
+        "",
+        "## Score Snapshot",
+        f"- AI Fit: {ai_fit}/100",
+        f"- Commercial Upside: {commercial_upside}/100",
+        f"- Risk Burden: {risk_burden}/100",
+        f"- Evidence Readiness: {evidence_readiness}/100",
+        f"- Confidence: {result['confidence']}",
+        "",
+        "## Core Tension",
+        result["core_tension"],
+        "",
+        "## Useful Kernel",
+        result["useful_kernel"],
+        "",
+        "## Commercial Value Worth Preserving",
+        result["commercial_value"],
+        "",
+        "## Risky Framing",
+        result["risky_framing"],
+        "",
+        "## What to Build",
+        *what_to_build_md,
+        "",
+        "## What Not to Build",
+        *what_not_to_build_md,
+        "",
+        "## Human Checkpoint",
+        result["human_checkpoint"],
+        "",
+        "## Next Validation Step",
+        result["next_validation_step"],
+    ]
+
+    markdown_output = "\n".join(markdown_lines)
+
+    # Add a button to copy/download markdown output:
+    st.subheader("Copy result as Markdown")
+    st.text_area("Markdown output", markdown_output, height=400)
+
+    st.download_button(
+        label="Download Markdown",
+        data=markdown_output,
+        file_name=f"{safe_filename}_aifit_result.md",
+        mime="text/markdown"
+    )
