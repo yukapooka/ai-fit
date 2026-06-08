@@ -204,7 +204,12 @@ AIFIT_JSON_SCHEMA = {
     "review_scope": "string",
     "review_timing": "string",
     "review_action": "string",
-    "next_validation_step": "string"
+    "next_validation_step": "string",
+    "validation_method": "string",
+    "validation_sample": "string",
+    "validation_metrics": ["string"],
+    "success_threshold": "string",
+    "failure_trigger": "string",
 }
 
 # Define a prompt builder function:
@@ -329,6 +334,57 @@ For False validation risk, review_package should include:
 - assumption-versus-evidence classification
 - comparison against real user or expert feedback
 - examples where AI overstates confidence
+
+For the validation workflow, fill each field separately:
+validation_method:
+What concrete test should the product team run next? Be specific to the dominant risk type.
+validation_sample:
+What data, users, cases, outputs, or scenarios should be included in the validation?
+validation_metrics:
+Return 3 to 5 specific metrics or review criteria. These should measure both product value and risk.
+move_forward_criteria:
+Describe the qualitative evidence needed to justify moving forward. Do not invent numeric thresholds unless the user explicitly provides them. Use language such as "strong expert agreement", "no material subgroup disparity", "users understand the AI output as advisory", or "no recurring harmful pattern."
+stop_or_redesign_signal:
+Describe the evidence that should cause the team to narrow, redesign, or stop the feature. Focus on concerning patterns, not arbitrary numeric cutoffs.
+Do not use unsupported numeric cutoffs such as ">80%", "<10%", or "4/5" unless those numbers are explicitly provided in the feature information.
+
+For Fairness / bias risk:
+- validation_method should compare AI outputs across relevant user subgroups.
+- validation_sample should include diverse user profiles, edge cases, and borderline examples.
+- validation_metrics should include subgroup disparity, expert agreement, perceived fairness, user confidence impact, and harmful feedback rate.
+- failure_trigger should include evidence that the system penalizes valid non-standard communication styles.
+
+For Privacy / sensitive data risk:
+- validation_method should test redaction, retention, deletion, and access control.
+- validation_sample should include inputs containing sensitive information and adversarial privacy cases.
+- validation_metrics should include leakage rate, redaction accuracy, deletion success, access control failures, and user comprehension of consent.
+- failure_trigger should include any uncontrolled exposure of sensitive information.
+
+For False validation risk:
+- validation_method should compare AI-generated claims or recommendations against real user evidence or expert review.
+- validation_sample should include AI outputs, original source evidence, weak-evidence cases, and contradictory examples.
+- validation_metrics should include evidence alignment, hallucinated claims, overconfidence rate, and expert agreement.
+- failure_trigger should include AI outputs being treated as validation without real evidence.
+
+For Over-reliance risk:
+- validation_method should test whether users treat AI output as suggestion or authority.
+- validation_sample should include high-confidence, low-confidence, correct, incorrect, and ambiguous outputs.
+- validation_metrics should include override rate, calibration accuracy, user understanding, and inappropriate reliance rate.
+- failure_trigger should include users following incorrect AI recommendations without review.
+
+Do not invent universal numeric thresholds unless they are explicitly provided by the user.
+When defining success_threshold or failure_trigger:
+- Use qualitative or directional thresholds by default.
+- If numeric thresholds are useful, label them as example thresholds for team calibration.
+- Do not present arbitrary numbers as universal standards.
+
+Use phrases like:
+- "team-defined acceptable range"
+- "material disparity"
+- "strong expert agreement"
+- "no recurring harmful pattern"
+- "calibrated threshold set before pilot"
+rather than unsupported numeric cutoffs.
 
 Feature information:
 Feature idea: {user_inputs["feature_idea"]}
@@ -566,7 +622,18 @@ def normalize_llm_result(result):
         "review_action": "Reviewers can approve, request revisions, require safeguards, escalate concerns, or block release.",
         "what_to_build": ["Not provided."],
         "what_not_to_build": ["Not provided."],
-        "next_validation_step": "Not provided.",
+        "next_validation_step": "Run a focused validation test using representative inputs, human review, and risk-specific success criteria.",
+        "validation_method": "Run a focused pilot to test whether the feature creates product value without introducing unacceptable risk.",
+        "validation_sample": "Representative user inputs, AI-generated outputs, edge cases, and human-reviewed examples.",
+        "validation_metrics": [
+            "Output accuracy",
+            "User comprehension",
+            "Human reviewer agreement",
+            "Risk incident rate",
+            "User trust or perceived usefulness"
+        ],
+        "move_forward_criteria": "Move forward if reviewers find the AI output useful, accurate, and appropriate for the intended context, with no recurring harmful pattern.",
+        "stop_or_redesign_signal": "Narrow or redesign if reviewers identify recurring inaccuracies, harmful outputs, user misunderstanding, or risk patterns that cannot be addressed with safeguards.",
     }
 
     # Fill missing or empty top-level keys.
@@ -575,7 +642,7 @@ def normalize_llm_result(result):
             result[key] = default_value
 
     # Ensure list fields are lists.
-    for key in ["what_to_build", "what_not_to_build"]:
+    for key in ["what_to_build", "what_not_to_build","review_package","validation_metrics"]:
         if isinstance(result[key], str):
             result[key] = [result[key]]
         elif not isinstance(result[key], list):
@@ -689,12 +756,19 @@ if submitted:
             "commercial_driver",
             "risk_driver",
             "evidence_driver",
+            "validation_method",
+            "validation_sample",
+            "move_forward_criteria",
+            "stop_or_redesign_signal",
         ]
         if result[key] in ["", None, "Not provided.", "Not provided"]
     ]
 
     if not result["review_package"] or result["review_package"] == ["Not provided."]:
         weak_fields.append("review_package")
+    
+    if not result["validation_metrics"] or result["validation_metrics"] == ["Not provided."]:
+        weak_fields.append("validation_metrics")
 
     if result["confidence"] in ["", None, "Low"] and len(weak_fields) == 0:
         result["confidence"] = "Medium"
@@ -778,10 +852,16 @@ if submitted:
     st.markdown(f"**Decision authority:** {result['review_action']}")
 
 
-    # Next validation step
-    st.subheader("Next validation step")
-    st.write(result["next_validation_step"])
-
+    # Validation workflow:
+    st.subheader("Validation workflow")
+    st.markdown(f"**Method:** {result['validation_method']}")
+    st.markdown(f"**Sample:** {result['validation_sample']}")
+    st.markdown("**Metrics:**")
+    for item in result["validation_metrics"]:
+        st.markdown(f"- {item}")
+    st.markdown(f"**Move-forward criteria:** {result['move_forward_criteria']}")
+    st.markdown(f"**Stop or redesign signal:** {result['stop_or_redesign_signal']}")
+    
     # ------------------------------
     # Markdown version of result
     # ------------------------------
@@ -813,7 +893,7 @@ if submitted:
         return filename
     
     display_feature = feature_idea if selected_case == "Start from blank" else selected_case
-    safe_filename = make_safe_filename(display_feature)
+    safe_filename= make_safe_filename(display_feature)
 
     markdown_lines = [
         "# AIFit Result",
@@ -872,8 +952,22 @@ if submitted:
         "### Decision Authority",
         result["review_action"],
         "",
-        "## Next Validation Step",
-        result["next_validation_step"],
+        "## Validation Workflow",
+        "",
+        "### Method",
+        result["validation_method"],
+        "",
+        "### Sample",
+        result["validation_sample"],
+        "",
+        "### Metrics",
+        *[f"- {item}" for item in result["validation_metrics"]],
+        "",
+        "### Move-forward Criteria",
+        result["move_forward_criteria"],
+        "",
+        "### Stop or Redesign Signal",
+        result["stop_or_redesign_signal"],
     ]
 
     markdown_output = "\n".join(markdown_lines)
