@@ -183,6 +183,7 @@ sample_outputs = {
 AIFIT_JSON_SCHEMA = {
     "recommendation": "string",
     "core_tension": "string",
+    "risk_type": "string",
     "ai_fit": 0,
     "commercial_upside": 0,
     "risk_burden": 0,
@@ -197,7 +198,12 @@ AIFIT_JSON_SCHEMA = {
     "risky_framing": "string",
     "what_to_build": ["string"],
     "what_not_to_build": ["string"],
-    "human_checkpoint": "string",
+    "human_checkpoint":"string",
+    "human_reviewer": "string", #split up human checkpoint to granular levels
+    "review_package": ["string"],
+    "review_scope": "string",
+    "review_timing": "string",
+    "review_action": "string",
     "next_validation_step": "string"
 }
 
@@ -242,6 +248,19 @@ For core_tension:
 Write one sentence in this format:
 "AI may [create specific product/user/business value], but may also [create specific risk or failure mode]."
 
+For risk_type:
+Classify the dominant risk_type using one of the following labels:
+- False validation
+- Emotional vulnerability
+- Financial manipulationh
+- Fairness / bias
+- Privacy / sensitive data
+- Over-reliance
+- Workflow misalignment
+- Safety escalation
+- Incentive misalignment
+- General AI product risk
+
 For ai_fit_driver:
 Explain why AI is or is not meaningfully justified beyond a simpler solution.
 
@@ -278,6 +297,38 @@ Give one concrete test the product team should run next.
 Output schema:
 The JSON object must follow this exact schema:
 {json.dumps(AIFIT_JSON_SCHEMA, indent=2)}
+
+For the human review workflow, fill each field separately:
+human_reviewer: Who should review the AI output? Be specific to the dominant risk type.
+review_package: Return 4 to 6 concrete artifacts the reviewer should inspect.
+Do not use generic terms like "AI output" or "feedback report" alone.
+Include source material, generated output, scoring logic, edge cases, subgroup comparisons, and user-facing wording where relevant.
+review_scope: What variation, subgroup, edge case, or risk pattern should the reviewer check? Be specific.
+review_timing: When should the review happen? For example: before pilot launch, after the first pilot batch, before public release, or periodically after deployment.
+review_action: What can the reviewer do? For example: approve, revise scoring rules, request safeguards, escalate concerns, or block release.
+
+For Fairness / bias risk, review_package should include:
+- generated outputs across different user subgroups
+- source inputs used to generate those outputs
+- scoring rubric or evaluation criteria
+- subgroup comparison or disparity summary
+- low-confidence or borderline examples
+- user-facing wording that may affect confidence, identity, or self-presentation
+
+For Privacy / sensitive data risk, review_package should include:
+- raw input examples containing sensitive data
+- redacted output examples
+- data retention and deletion policy
+- access control rules
+- consent and user disclosure copy
+- failure cases where sensitive information may leak
+
+For False validation risk, review_package should include:
+- AI-generated claims or recommendations
+- original source evidence
+- assumption-versus-evidence classification
+- comparison against real user or expert feedback
+- examples where AI overstates confidence
 
 Feature information:
 Feature idea: {user_inputs["feature_idea"]}
@@ -475,9 +526,21 @@ def normalize_llm_result(result):
             result.get("evidence_driver", "")
         )
 
+    if isinstance(result["review_package"], str):
+        result["review_package"] = [result["review_package"]]
+    elif not isinstance(result["review_package"], list):
+        result["review_package"] = [
+            "Representative AI-generated outputs",
+            "Source inputs used to generate those outputs",
+            "Scoring or evaluation criteria",
+            "Low-confidence or borderline examples",
+            "User-facing wording or recommendations"
+        ]
+
     defaults = {
         "recommendation": "",
         "core_tension": "AI may create product value, but the current framing needs further review for user risk, evidence quality, and human oversight.",
+        "risk_type": "General AI product risk",
         "ai_fit": 0,
         "commercial_upside": 0,
         "risk_burden": 0,
@@ -490,7 +553,17 @@ def normalize_llm_result(result):
         "useful_kernel": "Use AI to support human review by summarizing information, surfacing patterns, and helping teams make better-informed decisions.",
         "commercial_value": "Preserve efficiency, differentiation, and faster decision-making without removing human accountability.",
         "risky_framing": "An AI system that replaces human judgment or presents its recommendations as final decisions.",
-        "human_checkpoint": "A responsible human reviewer should assess the AI output before it influences product, user, or business decisions.",
+        "human_reviewer": "A responsible human reviewer.",
+        "review_package": [
+            "Representative AI-generated outputs",
+            "Source inputs used to generate those outputs",
+            "Scoring or evaluation criteria",
+            "Low-confidence or borderline examples",
+            "User-facing wording or recommendations"
+        ],
+        "review_scope": "Review whether the AI output is accurate, fair, safe, and appropriate for the intended user context.",
+        "review_timing": "Before pilot launch and again after reviewing early pilot outputs.",
+        "review_action": "Reviewers can approve, request revisions, require safeguards, escalate concerns, or block release.",
         "what_to_build": ["Not provided."],
         "what_not_to_build": ["Not provided."],
         "next_validation_step": "Not provided.",
@@ -606,7 +679,11 @@ if submitted:
             "useful_kernel",
             "commercial_value",
             "risky_framing",
-            "human_checkpoint",
+            "human_reviewer",
+            "review_package",
+            "review_scope",
+            "review_timing",
+            "review_action",
             "next_validation_step",
             "ai_fit_driver",
             "commercial_driver",
@@ -615,12 +692,14 @@ if submitted:
         ]
         if result[key] in ["", None, "Not provided.", "Not provided"]
     ]
+
+    if not result["review_package"] or result["review_package"] == ["Not provided."]:
+        weak_fields.append("review_package")
+
     if result["confidence"] in ["", None, "Low"] and len(weak_fields) == 0:
         result["confidence"] = "Medium"
     elif result["confidence"] in ["", None]:
         result["confidence"] = "Low"
-
-   
  
     # ------------------------------
     # One-page result card
@@ -645,6 +724,7 @@ if submitted:
                 help="Can the team test this responsibly before launch?")
 
     st.markdown(f"**Confidence:** {result['confidence']}")
+    st.markdown(f"**Dominant risk type:** {result['risk_type']}")
 
     st.divider()
 
@@ -688,8 +768,15 @@ if submitted:
             st.markdown(f"- {item}")
     
     # Human checkpoint
-    st.subheader("Human checkpoint")
-    st.write(result["human_checkpoint"])
+    st.subheader("Human review workflow")
+    st.markdown(f"**Reviewer:** {result['human_reviewer']}")
+    st.markdown("**Review package:**")
+    for item in result["review_package"]:
+        st.markdown(f"- {item}")
+    st.markdown(f"**Review scope:** {result['review_scope']}")
+    st.markdown(f"**Timing:** {result['review_timing']}")
+    st.markdown(f"**Decision authority:** {result['review_action']}")
+
 
     # Next validation step
     st.subheader("Next validation step")
@@ -768,8 +855,22 @@ if submitted:
         "## What Not to Build",
         *what_not_to_build_md,
         "",
-        "## Human Checkpoint",
-        result["human_checkpoint"],
+        "## Human Review Workflow",
+        "",
+        "### Reviewer",
+        result["human_reviewer"],
+        "",
+        "### Review Package",
+        *[f"- {item}" for item in result["review_package"]],
+        "",
+        "### Review Scope",
+        result["review_scope"],
+        "",
+        "### Review Timing",
+        result["review_timing"],
+        "",
+        "### Decision Authority",
+        result["review_action"],
         "",
         "## Next Validation Step",
         result["next_validation_step"],
