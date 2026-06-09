@@ -239,25 +239,25 @@ RISK_TYPE_GUIDANCE = {
     },
     "False validation": {
         "key_questions": [
-            "Can AI claims be traced back to source evidence?",
-            "Could users mistake synthetic output for real validation?",
-            "Does the feature reduce real-world evidence gathering?",
-            "Are uncertainty and evidence quality clearly communicated?",
+            "Can AI-generated claims, summaries, or recommendations be traced back to reliable source evidence?",
+            "Could users mistake AI-generated output for verified truth, official guidance, or real-world validation?",
+            "Does the feature reduce appropriate human verification or evidence gathering?",
+            "Are uncertainty, source quality, and confidence clearly communicated?",
         ],
         "validation_focus": [
-            "evidence alignment between AI claims and source material",
-            "unsupported or hallucinated claims",
-            "user understanding that outputs are hypotheses, not validation",
-            "continued use of real user research",
-            "reviewer confidence in traceability and evidence quality",
+            "evidence alignment between AI output and source material",
+            "unsupported, outdated, or hallucinated claims",
+            "user understanding of the AI output as advisory rather than authoritative",
+            "continued use of appropriate human verification or real-world evidence",
+            "reviewer confidence in traceability, source quality, and uncertainty communication",
         ],
         "move_forward_guidance": (
-            "Move forward only if outputs are traceable to source evidence, users understand them as hypotheses, "
-            "unsupported claims are clearly flagged, and the workflow still encourages real-world validation."
+            "Move forward only if outputs are traceable to reliable source evidence, users understand the limits of AI-generated guidance, "
+            "unsupported claims are clearly flagged, and appropriate human verification remains available."
         ),
         "stop_signal_guidance": (
-            "Stop or redesign if teams treat AI outputs as proof of demand, unsupported claims recur, "
-            "confidence signals obscure uncertainty, or the tool discourages real user research."
+            "Stop or redesign if users treat AI outputs as authoritative evidence, unsupported or outdated claims recur, "
+            "confidence signals obscure uncertainty, or human verification pathways are bypassed."
         ),
     },
     "Fairness / bias": {
@@ -401,10 +401,12 @@ Scoring rules:
 - Driver fields must contain explanation only, with no numeric score.
 
 Risk type:
+Risk type:
 Choose the dominant risk_type from the risk-specific guidance below.
 Choose the risk that most directly affects user judgment, autonomy, safety, or harm.
 Do not select "Privacy / sensitive data" merely because sensitive data is used. Select it only when data exposure, consent, retention, deletion, or access control is the dominant risk.
 For financial profiling, spending insights, nudges, or personalized money advice, prefer "Financial manipulation" when the main concern is shame, coercion, identity labeling, incentive misalignment, or steering users toward unsuitable financial behavior.
+For knowledge assistants, copilots, onboarding tools, internal policy assistants, and information retrieval systems, prefer "False validation" when the primary risk is users acting on incorrect, outdated, unsupported, or overconfident AI guidance.
 
 Core output guidance:
 - core_tension: One sentence in the form "AI may [create value], but may also [create risk]."
@@ -998,6 +1000,40 @@ if submitted:
         "## Feature",
         display_feature,
         "",
+        "## Feature Information",
+        "",
+        "### Feature Idea",
+        feature_idea,
+        "",
+        "### Target User",
+        target_user,
+        "",
+        "### User Problem",
+        user_problem,
+        "",
+        "### Proposed AI Capability",
+        ai_capability,
+        "",
+        "### Current Non-AI Alternative",
+        non_ai_alternative,
+        "",
+        "### Human Decision Influenced",
+        human_decision,
+        "",
+        "### Impact If Wrong",
+        impact_if_wrong,
+        "",
+        "### Data Sensitivity",
+        data_sensitivity,
+        "",
+        "### Business Value",
+        business_value,
+        "",
+        "### Success Metric",
+        success_metric,
+        "",
+        "---",
+        "",
         "## Recommendation",
         result["recommendation"],
         "",
@@ -1054,7 +1090,7 @@ if submitted:
         "### Method",
         result["validation_method"],
         "",
-        "### Sample",
+        "### Validation Coverage",
         result["validation_coverage"],
         "",
         "### Metrics",
