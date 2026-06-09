@@ -537,61 +537,92 @@ st.divider()
 st.header("1. Describe the AI feature")
 
 with st.form("feature_form"):
+    st.markdown("### Product idea")
+
     feature_idea = st.text_area(
-        "Feature_idea",
+        "Feature idea*",
         value=case["feature_idea"],
-        height=100
+        height=90,
+        placeholder="Describe the AI feature you want to evaluate."
     )
 
+    ai_capability = st.text_area(
+        "Proposed AI capability*",
+        value=case["ai_capability"],
+        height=80,
+        placeholder="What will the AI actually do?"
+    )
+
+    non_ai_alternative = st.text_area(
+        "Current non-AI alternative",
+        value=case["non_ai_alternative"],
+        height=70,
+        placeholder="How is this problem solved today without AI?"
+    )
+
+    st.markdown("### User and problem")
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         target_user = st.text_area(
-            "Target_user",
+            "Target user*",
             value=case["target_user"],
-            height=90
+            height=70,
+            placeholder="Who is this for?"
         )
-        user_problem = st.text_area(
-            "User_problem",
-            value=case["user_problem"],
-            height=90
-        )
-        ai_capability = st.text_area(
-            "AI_capability",
-            value=case["ai_capability"],
-            height=90
-        )
-        non_ai_alternative = st.text_area(
-            "Current non-AI alternative",
-            value=case["non_ai_alternative"],
-            height=90
-        )
+
     with col2:
-        human_decision = st.text_area(
-            "Human_decision",
-            value=case["human_decision"],
-            height=90
+        user_problem = st.text_area(
+            "User problem*",
+            value=case["user_problem"],
+            height=70,
+            placeholder="What problem is this meant to solve?"
         )
-        impact_if_wrong = st.text_area(
-            "Impact_if_wrong",
-            value=case["impact_if_wrong"],
-            height=90
-        )
-        data_sensitivity = st.text_area(
-            "Data_sensitivity",
-            value=case["data_sensitivity"],
-            height=90
-        )
+
+    st.markdown("### Business value")
+
+    col3, col4 = st.columns(2)
+
+    with col3:
         business_value = st.text_area(
-            "Business_value",
+            "Business value*",
             value=case["business_value"],
-            height=90
+            height=70,
+            placeholder="What business value are you hoping to create? Reduce support workload, improve conversion, increase retention, improve efficiency..."
         )
-    success_metric = st.text_area(
-        "Success_metric",
-        value=case["success_metric"],
-        height=90
+
+    with col4:
+        success_metric = st.text_area(
+            "Success metric",
+            value=case["success_metric"],
+            height=70,
+            placeholder="What would success look like?"
+        )
+
+    st.markdown("### Risk and failure mode")
+
+    impact_if_wrong = st.text_area(
+        "Impact if wrong *",
+        value=case["impact_if_wrong"],
+        height=80,
+        placeholder="Describe the most important failure mode if the AI is incorrect."
     )
+
+    with st.expander("Advanced context"):
+        human_decision = st.text_area(
+            "Human decision influenced",
+            value=case["human_decision"],
+            height=70,
+            placeholder="What human decision will this AI output influence?"
+        )
+
+        data_sensitivity = st.text_area(
+            "Data sensitivity",
+            value=case["data_sensitivity"],
+            height=70,
+            placeholder="Does it involve personal, financial, health, workplace, emotional, or confidential data?"
+        )
     submitted = st.form_submit_button("Evaluate AI feature")
 
 # -----------------------------
@@ -763,6 +794,23 @@ if submitted:
         "business_value": business_value,
         "success_metric": success_metric,
     }
+
+    # Validate mandatory and optional input fields:
+    required_fields = {
+        "Feature idea": feature_idea,
+        "Target user": target_user,
+        "User problem": user_problem,
+        "Proposed AI capability": ai_capability,
+        "Impact if wrong": impact_if_wrong,
+        "Business value": business_value,
+    }
+    missing_fields = [
+        name for name, value in required_fields.items() 
+        if not value or not value.strip()
+    ]
+    if missing_fields:
+        st.warning(f"Please complete the required fields: {', '.join(missing_fields)}")
+        st.stop()
 
     # Handle blank case first:
     if selected_case == "Start from blank":
