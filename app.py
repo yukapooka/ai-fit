@@ -89,7 +89,7 @@ sample_outputs = {
             "Assumption mapping",
             "Interview question generation",
             "Missing segment/ weak evidence flags",
-            "Comparison between AI-genrated hypotheses and real user feedback"
+            "Comparison between AI-generated hypotheses and real user feedback"
         ],
         "what_not_to_build":[
             "Synthetic user quotes presented as evidence",
@@ -206,185 +206,240 @@ AIFIT_JSON_SCHEMA = {
     "review_action": "string",
     "next_validation_step": "string",
     "validation_method": "string",
-    "validation_sample": "string",
+    "validation_coverage": "string",
     "validation_metrics": ["string"],
     "success_threshold": "string",
     "failure_trigger": "string",
 }
 
+RISK_TYPE_GUIDANCE = {
+    "Emotional vulnerability": {
+        "key_questions": [
+            "Could users become emotionally dependent on the AI?",
+            "Could users mistake the AI for human or therapeutic support?",
+            "Are distress signals handled safely?",
+            "Do users have clear pause, opt-out, and escalation controls?",
+        ],
+        "validation_focus": [
+            "emotional support without increased dependency",
+            "expert review of tone and boundary safety",
+            "safe handling of distress signals",
+            "user control over timing, frequency, and opt-out",
+            "avoidance of overly intimate or substitutive messaging",
+        ],
+        "move_forward_guidance": (
+            "Move forward only if users feel supported without increased dependency, "
+            "reviewers approve message tone and boundaries, opt-out controls work reliably, "
+            "and distress escalation pathways are safe."
+        ),
+        "stop_signal_guidance": (
+            "Stop or redesign if users treat the AI as a substitute for human support, "
+            "messages increase distress or dependency, opt-out controls fail, or high-risk distress is not escalated safely."
+        ),
+    },
+    "False validation": {
+        "key_questions": [
+            "Can AI claims be traced back to source evidence?",
+            "Could users mistake synthetic output for real validation?",
+            "Does the feature reduce real-world evidence gathering?",
+            "Are uncertainty and evidence quality clearly communicated?",
+        ],
+        "validation_focus": [
+            "evidence alignment between AI claims and source material",
+            "unsupported or hallucinated claims",
+            "user understanding that outputs are hypotheses, not validation",
+            "continued use of real user research",
+            "reviewer confidence in traceability and evidence quality",
+        ],
+        "move_forward_guidance": (
+            "Move forward only if outputs are traceable to source evidence, users understand them as hypotheses, "
+            "unsupported claims are clearly flagged, and the workflow still encourages real-world validation."
+        ),
+        "stop_signal_guidance": (
+            "Stop or redesign if teams treat AI outputs as proof of demand, unsupported claims recur, "
+            "confidence signals obscure uncertainty, or the tool discourages real user research."
+        ),
+    },
+    "Fairness / bias": {
+        "key_questions": [
+            "Does the AI treat relevant user subgroups differently?",
+            "Could the feature penalize valid non-standard behavior or communication styles?",
+            "Are scoring rubrics fair across contexts?",
+        ],
+        "validation_focus": [
+            "expert agreement across relevant subgroups",
+            "subgroup differences in tone, severity, or recommendations",
+            "user-perceived fairness",
+            "harmful or identity-shaping feedback",
+            "edge cases and borderline examples",
+        ],
+        "move_forward_guidance": (
+            "Move forward only if expert reviewers find the output fair across relevant subgroups, "
+            "users do not feel pressured to conform to a narrow norm, and no material disparity appears in tone or scoring severity."
+        ),
+        "stop_signal_guidance": (
+            "Stop or redesign if outputs repeatedly penalize valid non-standard communication, create subgroup disparities, "
+            "or pressure users to change identity-linked behavior."
+        ),
+    },
+    "Privacy / sensitive data": {
+        "key_questions": [
+            "What sensitive data is collected, stored, or exposed?",
+            "Can outputs leak private information?",
+            "Are consent, retention, deletion, and access controls clear?",
+        ],
+        "validation_focus": [
+            "data minimization",
+            "redaction quality",
+            "retention and deletion behavior",
+            "access control failures",
+            "user understanding of consent and data use",
+        ],
+        "move_forward_guidance": (
+            "Move forward only if sensitive inputs are minimized, redacted where appropriate, stored securely, "
+            "deleted as promised, and users clearly understand consent and data use."
+        ),
+        "stop_signal_guidance": (
+            "Stop or redesign if raw sensitive data is exposed, consent is unclear, deletion fails, access controls fail, "
+            "or private information leaks into outputs."
+        ),
+    },
+    "General AI product risk": {
+        "key_questions": [
+            "Does AI add value beyond simpler alternatives?",
+            "What user or business decision could be distorted?",
+            "What evidence is needed before launch?",
+        ],
+        "validation_focus": [
+            "user value",
+            "output quality",
+            "human review",
+            "user understanding",
+            "risk mitigation",
+        ],
+        "move_forward_guidance": (
+            "Move forward only if the feature shows clear user value, reliable output quality, and manageable risk with human oversight."
+        ),
+        "stop_signal_guidance": (
+            "Stop or redesign if outputs are unreliable, users misunderstand the AI role, or risks cannot be mitigated through product safeguards."
+        ),
+    },
+   "Financial manipulation": {
+        "key_questions": [
+            "Could the feature pressure users toward financial behaviors that benefit the business more than the user?",
+            "Could users feel shamed, judged, or reduced to a financial identity label?",
+            "Could inferred profiles steer users toward unsuitable products or decisions?",
+            "Are users able to understand, edit, reject, or delete the profile?"
+        ],
+        "validation_focus": [
+            "user understanding of profile meaning and limitations",
+            "emotional impact of labels and nudges",
+            "pressure or coercion in financial recommendations",
+            "fairness across income, age, and financial vulnerability groups",
+            "separation between education and monetized product recommendations"
+        ],
+        "move_forward_guidance": (
+            "Move forward only if users understand the profile as an editable reflection rather than a fixed identity, "
+            "nudges are perceived as supportive rather than shaming or coercive, and financial recommendations are clearly separated from education."
+        ),
+        "stop_signal_guidance": (
+            "Stop or redesign if users feel judged, shamed, pressured toward financial products, or if inferred profiles create unfair treatment "
+            "across income, age, or financial vulnerability groups."
+        ),
+    },
+}
+
+def format_risk_guidance_for_prompt():
+    sections = []
+
+    for risk_type, guidance in RISK_TYPE_GUIDANCE.items():
+        section = f"""
+Risk type: {risk_type}
+
+Key questions:
+{chr(10).join([f"- {item}" for item in guidance["key_questions"]])}
+
+Validation focus:
+{chr(10).join([f"- {item}" for item in guidance["validation_focus"]])}
+
+Move-forward guidance:
+{guidance["move_forward_guidance"]}
+
+Stop/redesign guidance:
+{guidance["stop_signal_guidance"]}
+"""
+        sections.append(section)
+
+    return "\n".join(sections)
+
 # Define a prompt builder function:
 def build_aifit_prompt(user_inputs):
     return f"""
 You are an experienced AI product manager specializing in responsible AI product launches.
+
 Evaluate the proposed AI feature using the AIFit framework.
 
-Return one JSON object only. Do not include text before or after the JSON.
-You must fill every field with useful, product-specific content.
-Do not leave any field blank.
-Do not write "Not provided."
-Scores must be integers from 0 to 100.
-Do not include "/100", labels, or words in score fields.
-Use the exact top-level keys provided in the schema.
+Return one valid JSON object only.
+Do not include markdown, commentary, code fences, or text before/after the JSON.
+Use the exact top-level keys in the schema.
 Do not rename keys.
-Do not nest score drivers.
-Important scoring rule:
-The four score fields must be numeric integers only.
-Use:
-"ai_fit": 80
-
-Do not use:
-"ai_fit": "80/100"
-"ai_fit": "High"
-"ai_fit_driver": "AI is useful... 80"
-Do not place score numbers inside driver text.
-Driver fields should contain explanation only, no numeric score.
-
-You must fill these fields separately:
-- ai_fit: integer from 0 to 100
-- ai_fit_driver: explanation sentence with no number
-- commercial_upside: integer from 0 to 100
-- commercial_driver: explanation sentence with no number
-- risk_burden: integer from 0 to 100
-- risk_driver: explanation sentence with no number
-- evidence_readiness: integer from 0 to 100
-- evidence_driver: explanation sentence with no number
-
-For core_tension:
-Write one sentence in this format:
-"AI may [create specific product/user/business value], but may also [create specific risk or failure mode]."
-
-For risk_type:
-Classify the dominant risk_type using one of the following labels:
-- False validation
-- Emotional vulnerability
-- Financial manipulationh
-- Fairness / bias
-- Privacy / sensitive data
-- Over-reliance
-- Workflow misalignment
-- Safety escalation
-- Incentive misalignment
-- General AI product risk
-
-For ai_fit_driver:
-Explain why AI is or is not meaningfully justified beyond a simpler solution.
-
-For commercial_driver:
-Explain the likely business value, such as adoption, retention, efficiency, differentiation, or revenue.
-
-For risk_driver:
-Explain the main product, user, governance, or failure risk.
-
-For evidence_driver:
-Explain what makes this feature easy or hard to validate before launch.
-
-The following fields are required and must contain one concrete sentence each:
-"useful_kernel": What part of the idea is worth preserving for users?
-"commercial_value": What business value is worth preserving without increasing risk?
-"risky_framing": What product framing should the team avoid?
-"human_checkpoint": Which human reviewer must review the output before product decisions are made?
-Do not leave these fields blank.
+Do not leave fields blank.
 Do not write "Not provided."
-Do not rename these fields.
 
-Example:
-"useful_kernel": "Use AI to summarize support tickets, cluster recurring issues, and help humans identify patterns faster."
-"commercial_value": "Preserve operational efficiency and faster product feedback loops without automating roadmap prioritization."
-"risky_framing": "An AI system that directly decides which customer complaints should drive the roadmap."
-"human_checkpoint": "Support leads and product managers should review AI escalation suggestions before they influence roadmap discussions."
-
-For what_to_build and what_not_to_build:
-Return 3 to 6 specific product-scope bullets each.
-
-For next_validation_step:
-Give one concrete test the product team should run next.
-
-Output schema:
-The JSON object must follow this exact schema:
+The JSON object must follow this schema:
 {json.dumps(AIFIT_JSON_SCHEMA, indent=2)}
 
-For the human review workflow, fill each field separately:
-human_reviewer: Who should review the AI output? Be specific to the dominant risk type.
-review_package: Return 4 to 6 concrete artifacts the reviewer should inspect.
-Do not use generic terms like "AI output" or "feedback report" alone.
-Include source material, generated output, scoring logic, edge cases, subgroup comparisons, and user-facing wording where relevant.
-review_scope: What variation, subgroup, edge case, or risk pattern should the reviewer check? Be specific.
-review_timing: When should the review happen? For example: before pilot launch, after the first pilot batch, before public release, or periodically after deployment.
-review_action: What can the reviewer do? For example: approve, revise scoring rules, request safeguards, escalate concerns, or block release.
+Evaluation dimensions:
+- AI Fit: Does AI add meaningful value beyond a simpler non-AI solution?
+- Commercial Upside: Could this create adoption, retention, revenue, differentiation, or efficiency?
+- Risk Burden: What user, product, governance, or failure risk does this introduce?
+- Evidence Readiness: Can the team test this responsibly before launch?
 
-For Fairness / bias risk, review_package should include:
-- generated outputs across different user subgroups
-- source inputs used to generate those outputs
-- scoring rubric or evaluation criteria
-- subgroup comparison or disparity summary
-- low-confidence or borderline examples
-- user-facing wording that may affect confidence, identity, or self-presentation
+Scoring rules:
+- ai_fit, commercial_upside, risk_burden, and evidence_readiness must be integers from 0 to 100.
+- Do not include "/100", labels, or words in score fields.
+- Driver fields must contain explanation only, with no numeric score.
 
-For Privacy / sensitive data risk, review_package should include:
-- raw input examples containing sensitive data
-- redacted output examples
-- data retention and deletion policy
-- access control rules
-- consent and user disclosure copy
-- failure cases where sensitive information may leak
+Risk type:
+Choose the dominant risk_type from the risk-specific guidance below.
+Choose the risk that most directly affects user judgment, autonomy, safety, or harm.
+Do not select "Privacy / sensitive data" merely because sensitive data is used. Select it only when data exposure, consent, retention, deletion, or access control is the dominant risk.
+For financial profiling, spending insights, nudges, or personalized money advice, prefer "Financial manipulation" when the main concern is shame, coercion, identity labeling, incentive misalignment, or steering users toward unsuitable financial behavior.
 
-For False validation risk, review_package should include:
-- AI-generated claims or recommendations
-- original source evidence
-- assumption-versus-evidence classification
-- comparison against real user or expert feedback
-- examples where AI overstates confidence
+Core output guidance:
+- core_tension: One sentence in the form "AI may [create value], but may also [create risk]."
+- useful_kernel: What part of the idea is worth preserving?
+- commercial_value: What business value is worth preserving without increasing risk?
+- risky_framing: What product framing should the team avoid?
+- what_to_build: 3 to 6 concrete product-scope items.
+- what_not_to_build: 3 to 6 concrete product boundaries or anti-patterns.
 
-For the validation workflow, fill each field separately:
-validation_method:
-What concrete test should the product team run next? Be specific to the dominant risk type.
-validation_sample:
-What data, users, cases, outputs, or scenarios should be included in the validation?
-validation_metrics:
-Return 3 to 5 specific metrics or review criteria. These should measure both product value and risk.
-move_forward_criteria:
-Describe the qualitative evidence needed to justify moving forward. Do not invent numeric thresholds unless the user explicitly provides them. Use language such as "strong expert agreement", "no material subgroup disparity", "users understand the AI output as advisory", or "no recurring harmful pattern."
-stop_or_redesign_signal:
-Describe the evidence that should cause the team to narrow, redesign, or stop the feature. Focus on concerning patterns, not arbitrary numeric cutoffs.
-Do not use unsupported numeric cutoffs such as ">80%", "<10%", or "4/5" unless those numbers are explicitly provided in the feature information.
+Human review workflow:
+Fill each field separately.
+- human_reviewer: Who should review the AI output? Be specific to the dominant risk type.
+- review_package: 4 to 6 concrete artifacts the reviewer should inspect. Include source material, generated output, scoring logic, edge cases, subgroup comparisons, or user-facing wording where relevant.
+- review_scope: What variation, subgroup, edge case, or risk pattern should the reviewer check?
+- review_timing: When should review happen?
+- review_action: What can the reviewer do? For example: approve, revise, request safeguards, escalate, or block release.
 
-For Fairness / bias risk:
-- validation_method should compare AI outputs across relevant user subgroups.
-- validation_sample should include diverse user profiles, edge cases, and borderline examples.
-- validation_metrics should include subgroup disparity, expert agreement, perceived fairness, user confidence impact, and harmful feedback rate.
-- failure_trigger should include evidence that the system penalizes valid non-standard communication styles.
+Validation workflow:
+Fill each field separately.
+- validation_method: What concrete test should the product team run next?
+- validation_coverage: What users, scenarios, edge cases, inputs, and outputs must be represented? Do not specify exact sample sizes unless provided by the user.
+- validation_metrics: 4 to 6 metrics that match the dominant risk_type. Do not reuse generic metrics from another risk type.
+- move_forward_criteria: Qualitative evidence that would justify moving forward. Do not invent numeric thresholds.
+- stop_or_redesign_signal: Evidence that should cause the team to narrow, redesign, pause, or stop the feature.
 
-For Privacy / sensitive data risk:
-- validation_method should test redaction, retention, deletion, and access control.
-- validation_sample should include inputs containing sensitive information and adversarial privacy cases.
-- validation_metrics should include leakage rate, redaction accuracy, deletion success, access control failures, and user comprehension of consent.
-- failure_trigger should include any uncontrolled exposure of sensitive information.
+Avoid unsupported precision:
+Do not invent sample sizes, percentages, Likert targets, or numeric cutoffs unless the user explicitly provides them.
+Use qualitative phrases such as "strong expert agreement", "material disparity", "no recurring harmful pattern", "users understand the AI output as advisory", or "team-defined acceptable range."
 
-For False validation risk:
-- validation_method should compare AI-generated claims or recommendations against real user evidence or expert review.
-- validation_sample should include AI outputs, original source evidence, weak-evidence cases, and contradictory examples.
-- validation_metrics should include evidence alignment, hallucinated claims, overconfidence rate, and expert agreement.
-- failure_trigger should include AI outputs being treated as validation without real evidence.
+Risk-specific guidance:
+{format_risk_guidance_for_prompt()}
 
-For Over-reliance risk:
-- validation_method should test whether users treat AI output as suggestion or authority.
-- validation_sample should include high-confidence, low-confidence, correct, incorrect, and ambiguous outputs.
-- validation_metrics should include override rate, calibration accuracy, user understanding, and inappropriate reliance rate.
-- failure_trigger should include users following incorrect AI recommendations without review.
-
-Do not invent universal numeric thresholds unless they are explicitly provided by the user.
-When defining success_threshold or failure_trigger:
-- Use qualitative or directional thresholds by default.
-- If numeric thresholds are useful, label them as example thresholds for team calibration.
-- Do not present arbitrary numbers as universal standards.
-
-Use phrases like:
-- "team-defined acceptable range"
-- "material disparity"
-- "strong expert agreement"
-- "no recurring harmful pattern"
-- "calibrated threshold set before pilot"
-rather than unsupported numeric cutoffs.
+Use the risk-specific guidance to adapt the review workflow, validation metrics, move-forward criteria, and stop/redesign signal.
+Do not copy the guidance word-for-word unless it directly fits the feature.
+Adapt it to the actual product idea.
 
 Feature information:
 Feature idea: {user_inputs["feature_idea"]}
@@ -624,7 +679,7 @@ def normalize_llm_result(result):
         "what_not_to_build": ["Not provided."],
         "next_validation_step": "Run a focused validation test using representative inputs, human review, and risk-specific success criteria.",
         "validation_method": "Run a focused pilot to test whether the feature creates product value without introducing unacceptable risk.",
-        "validation_sample": "Representative user inputs, AI-generated outputs, edge cases, and human-reviewed examples.",
+        "validation_coverage": "Representative user inputs, AI-generated outputs, edge cases, and human-reviewed examples.",
         "validation_metrics": [
             "Output accuracy",
             "User comprehension",
@@ -632,8 +687,8 @@ def normalize_llm_result(result):
             "Risk incident rate",
             "User trust or perceived usefulness"
         ],
-        "move_forward_criteria": "Move forward if reviewers find the AI output useful, accurate, and appropriate for the intended context, with no recurring harmful pattern.",
-        "stop_or_redesign_signal": "Narrow or redesign if reviewers identify recurring inaccuracies, harmful outputs, user misunderstanding, or risk patterns that cannot be addressed with safeguards.",
+        "move_forward_criteria": "Move forward only if the validation evidence shows the feature creates user value while keeping the dominant risk within a team-defined acceptable range.",
+        "stop_or_redesign_signal": "Narrow or redesign if validation reveals that the dominant risk appears repeatedly, affects vulnerable users, or cannot be mitigated through product safeguards.",
     }
 
     # Fill missing or empty top-level keys.
@@ -647,6 +702,47 @@ def normalize_llm_result(result):
             result[key] = [result[key]]
         elif not isinstance(result[key], list):
             result[key] = ["Not provided."]
+    return result
+
+def apply_risk_specific_validation_fallbacks(result):
+    """
+    Safety net only.
+    The prompt should generate risk-specific validation content.
+    This function only replaces obviously generic fallback text.
+    """
+    risk_type = result.get("risk_type", "General AI product risk")
+    guidance = RISK_TYPE_GUIDANCE.get(
+        risk_type,
+        RISK_TYPE_GUIDANCE["General AI product risk"]
+    )
+
+    generic_move_forward_phrases = [
+        "Move forward only if the validation evidence shows",
+        "Move forward if reviewers find the AI output useful",
+        "Proceed if the feature demonstrates clear user value",
+        "useful, accurate, and appropriate",
+        "dominant risk within a team-defined acceptable range",
+    ]
+
+    generic_stop_phrases = [
+        "Narrow or redesign if validation reveals",
+        "Redesign if reviewers identify recurring inaccuracies",
+        "The feature should be narrowed or redesigned if outputs are inaccurate",
+        "risk patterns that cannot be addressed with safeguards",
+    ]
+
+    if (
+        not result.get("move_forward_criteria")
+        or any(phrase in result["move_forward_criteria"] for phrase in generic_move_forward_phrases)
+    ):
+        result["move_forward_criteria"] = guidance["move_forward_guidance"]
+
+    if (
+        not result.get("stop_or_redesign_signal")
+        or any(phrase in result["stop_or_redesign_signal"] for phrase in generic_stop_phrases)
+    ):
+        result["stop_or_redesign_signal"] = guidance["stop_signal_guidance"]
+
     return result
 
 if submitted:
@@ -681,6 +777,7 @@ if submitted:
     
     # Call normalizer
     result = normalize_llm_result(result)
+    result = apply_risk_specific_validation_fallbacks(result)
 
     ai_fit = parse_score(result["ai_fit"])
     commercial_upside = parse_score(result["commercial_upside"])
@@ -757,7 +854,7 @@ if submitted:
             "risk_driver",
             "evidence_driver",
             "validation_method",
-            "validation_sample",
+            "validation_coverage",
             "move_forward_criteria",
             "stop_or_redesign_signal",
         ]
@@ -855,7 +952,7 @@ if submitted:
     # Validation workflow:
     st.subheader("Validation workflow")
     st.markdown(f"**Method:** {result['validation_method']}")
-    st.markdown(f"**Sample:** {result['validation_sample']}")
+    st.markdown(f"**Sample:** {result['validation_coverage']}")
     st.markdown("**Metrics:**")
     for item in result["validation_metrics"]:
         st.markdown(f"- {item}")
@@ -958,7 +1055,7 @@ if submitted:
         result["validation_method"],
         "",
         "### Sample",
-        result["validation_sample"],
+        result["validation_coverage"],
         "",
         "### Metrics",
         *[f"- {item}" for item in result["validation_metrics"]],
@@ -981,4 +1078,13 @@ if submitted:
         data=markdown_output,
         file_name=f"{safe_filename}_aifit_result.md",
         mime="text/markdown"
+    )
+
+    # ------------------------------
+    # Model limitation note
+    # ------------------------------
+    st.markdown(
+    """
+    Custom evaluations are generated using an LLM and should be treated as structured decision support, not final product judgment. Outputs may vary across runs.
+    """
     )
