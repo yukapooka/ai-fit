@@ -70,6 +70,14 @@ sample_outputs = {
     "AI Digital Twin for User Research Personas": {
         "recommendation":"Prototype, but narrow scope.",
         "core_tension":"AI can speed up research synthesis and product discovery, but may create synthetic evidence that teams mistake for real user validation.",
+        "risk_type": "False validation",
+        "risk_themes": [
+            "synthetic evidence",
+            "unsupported claims",
+            "overconfidence",
+            "reduced real user research",
+        ],
+        "risk_rationale": "AIFit classifies this as False validation because product teams may treat AI-generated persona responses as evidence of user demand even when those responses are synthetic or weakly supported by source research.",
         "ai_fit":72,
         "commercial_upside":78,
         "risk_burden":68,
@@ -104,6 +112,14 @@ sample_outputs = {
     "AI Grief Companion": {
         "recommendation":"Prototype only as guided reflection support, with strong user controls and expert-reviewed boundaries.",
         "core_tension":"AI may offer comfort and structure during difficult moments, but may also simulate intimacy, deepen dependency, or cross into therapy-adjacent support.",
+        "risk_type": "Emotional vulnerability",
+        "risk_themes": [
+            "emotional dependency",
+            "false intimacy",
+            "distress escalation",
+            "user autonomy",
+        ],
+        "risk_rationale": "AIFit classifies this as Emotional vulnerability because users may rely on the AI for support during grief or distress, creating risks of dependency, unsafe boundaries, or missed escalation to human help.",
         "ai_fit":74,
         "commercial_upside":65,
         "risk_burden":88,
@@ -140,6 +156,14 @@ sample_outputs = {
     "AI Financial Personality Profiler": {
         "recommendation":"Narrow scope before prototype.",
         "core_tension":"AI may support financial reflection and personalization, but could become reductive, shame-inducing, or manipulative if used to label users or steer financial behavior.",
+                "risk_type": "Financial manipulation",
+        "risk_themes": [
+            "identity labeling",
+            "shame or coercion",
+            "incentive misalignment",
+            "financial vulnerability",
+        ],
+        "risk_rationale": "AIFit classifies this as Financial manipulation because users may treat inferred spending profiles as fixed identity labels and may be nudged toward financial behaviors or products that do not serve their interests.",
         "ai_fit":64,
         "commercial_upside":82,
         "risk_burden":80,
@@ -185,6 +209,7 @@ AIFIT_JSON_SCHEMA = {
     "core_tension": "string",
     "risk_type": "string",
     "risk_themes": ["string"],
+    "risk_rationale":"string",
     "ai_fit": 0,
     "commercial_upside": 0,
     "risk_burden": 0,
@@ -438,6 +463,9 @@ Use qualitative phrases such as "strong expert agreement", "material disparity",
 
 Risk-specific guidance:
 {format_risk_guidance_for_prompt()}
+Use the risk-specific guidance to adapt the review workflow, validation metrics, move-forward criteria, and stop/redesign signal.
+Do not copy the guidance word-for-word unless it directly fits the feature.
+Adapt it to the actual product idea.
 
 risk_themes:
 Return 2 to 5 specific risk themes that explain the dominant risk in this case.
@@ -456,9 +484,10 @@ Examples of risk themes:
 - outdated guidance
 - user autonomy
 
-Use the risk-specific guidance to adapt the review workflow, validation metrics, move-forward criteria, and stop/redesign signal.
-Do not copy the guidance word-for-word unless it directly fits the feature.
-Adapt it to the actual product idea.
+risk_rationale:
+Explain in one or two sentences why this risk_type and these risk_themes were selected.
+Tie the rationale to the specific feature, user decision influenced, and impact if wrong.
+Do not give a generic explanation.
 
 Feature information:
 Feature idea: {user_inputs["feature_idea"]}
@@ -711,6 +740,7 @@ def normalize_llm_result(result):
         "core_tension": "AI may create product value, but the current framing needs further review for user risk, evidence quality, and human oversight.",
         "risk_type": "General AI product risk",
         "risk_themes": ["General AI product risk"],
+        "risk_rationale": "AIFit selected this risk classification based on the likely user decision influenced by the AI output and the potential impact if the AI is wrong.",
         "ai_fit": 0,
         "commercial_upside": 0,
         "risk_burden": 0,
@@ -978,10 +1008,10 @@ if submitted:
 
     st.markdown(f"**Confidence:** {result['confidence']}")
     st.markdown(f"**Dominant risk type:** {result['risk_type']}")
-
     st.markdown("**Risk themes:**")
     for theme in result["risk_themes"]:
         st.markdown(f"- {theme}")
+    st.markdown(f"**Risk rationale:** {result['risk_rationale']}")
 
     st.info(
         "AIFit provides structured decision support, not final product judgment. "
@@ -1131,6 +1161,9 @@ if submitted:
         "",
         "## Risk Themes",
         *[f"- {item}" for item in result["risk_themes"]],
+        "",
+        "## Risk Rationale",
+        result["risk_rationale"],
         "",
         "## Useful Kernel",
         result["useful_kernel"],
