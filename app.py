@@ -669,7 +669,15 @@ def normalize_llm_result(result):
             result.get("evidence_driver", "")
         )
 
-    if isinstance(result["review_package"], str):
+    if "review_package" not in result or result["review_package"] in ["", None]:
+        result["review_package"] = [
+            "Representative AI-generated outputs",
+            "Source inputs used to generate those outputs",
+            "Scoring or evaluation criteria",
+            "Low-confidence or borderline examples",
+            "User-facing wording or recommendations",
+        ]
+    elif isinstance(result["review_package"], str):
         result["review_package"] = [result["review_package"]]
     elif not isinstance(result["review_package"], list):
         result["review_package"] = [
@@ -677,7 +685,7 @@ def normalize_llm_result(result):
             "Source inputs used to generate those outputs",
             "Scoring or evaluation criteria",
             "Low-confidence or borderline examples",
-            "User-facing wording or recommendations"
+            "User-facing wording or recommendations",
         ]
 
     defaults = {
