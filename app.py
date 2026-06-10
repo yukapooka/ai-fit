@@ -401,7 +401,6 @@ Scoring rules:
 - Driver fields must contain explanation only, with no numeric score.
 
 Risk type:
-Risk type:
 Choose the dominant risk_type from the risk-specific guidance below.
 Choose the risk that most directly affects user judgment, autonomy, safety, or harm.
 Do not select "Privacy / sensitive data" merely because sensitive data is used. Select it only when data exposure, consent, retention, deletion, or access control is the dominant risk.
@@ -1169,6 +1168,6 @@ if submitted:
     # ------------------------------
     st.markdown(
     """
-    Custom evaluations are generated using an LLM and should be treated as structured decision support, not final product judgment. Outputs may vary across runs.
+    Note: Custom evaluations are generated using an LLM and should be treated as structured decision support, not final product judgment. Outputs may vary across runs.
     """
     )
