@@ -161,3 +161,14 @@ I built AIFit to get hands-on experience in:
 * Streamlit app development;
 * OpenRouter API integration;
 * agentic / vibe coding for MVP development.
+
+## Future work / backlog
+Potential future improvements:
+- Add flexible `risk_themes` in addition to the dominant `risk_type`.
+  - `risk_type` would remain a broad category for routing.
+  - `risk_themes` would capture case-specific nuances such as high-stakes decision support, delayed care, false reassurance, escalation failure, identity labeling, data leakage, or evidence misuse.
+- Move `RISK_TYPE_GUIDANCE` out of `app.py` into a separate configuration file.
+  - This would make the risk taxonomy easier to maintain without cluttering the main app logic.
+- Test whether recurring `risk_themes` should become formal risk types.
+  - For example: Health Decision Support, High-Stakes Decision Support, or Workflow Misalignment.
+  

@@ -184,6 +184,7 @@ AIFIT_JSON_SCHEMA = {
     "recommendation": "string",
     "core_tension": "string",
     "risk_type": "string",
+    "risk_themes": ["string"],
     "ai_fit": 0,
     "commercial_upside": 0,
     "risk_burden": 0,
@@ -437,6 +438,23 @@ Use qualitative phrases such as "strong expert agreement", "material disparity",
 
 Risk-specific guidance:
 {format_risk_guidance_for_prompt()}
+
+risk_themes:
+Return 2 to 5 specific risk themes that explain the dominant risk in this case.
+These should add nuance beyond the broad risk_type.
+Examples of risk themes:
+- high-stakes decision support
+- delayed care
+- false reassurance
+- escalation failure
+- over-reliance
+- identity labeling
+- data leakage
+- incentive conflict
+- emotional dependency
+- evidence misuse
+- outdated guidance
+- user autonomy
 
 Use the risk-specific guidance to adapt the review workflow, validation metrics, move-forward criteria, and stop/redesign signal.
 Do not copy the guidance word-for-word unless it directly fits the feature.
@@ -692,6 +710,7 @@ def normalize_llm_result(result):
         "recommendation": "",
         "core_tension": "AI may create product value, but the current framing needs further review for user risk, evidence quality, and human oversight.",
         "risk_type": "General AI product risk",
+        "risk_themes": ["General AI product risk"],
         "ai_fit": 0,
         "commercial_upside": 0,
         "risk_burden": 0,
@@ -737,7 +756,13 @@ def normalize_llm_result(result):
             result[key] = default_value
 
     # Ensure list fields are lists.
-    for key in ["what_to_build", "what_not_to_build","review_package","validation_metrics"]:
+    for key in [
+        "what_to_build",
+        "what_not_to_build",
+        "review_package",
+        "validation_metrics",
+        "risk_themes",
+    ]:
         if isinstance(result[key], str):
             result[key] = [result[key]]
         elif not isinstance(result[key], list):
@@ -954,67 +979,60 @@ if submitted:
     st.markdown(f"**Confidence:** {result['confidence']}")
     st.markdown(f"**Dominant risk type:** {result['risk_type']}")
 
+    st.markdown("**Risk themes:**")
+    for theme in result["risk_themes"]:
+        st.markdown(f"- {theme}")
+
+    st.info(
+        "AIFit provides structured decision support, not final product judgment. "
+        "Custom evaluations are generated using an LLM and may vary across runs. "
+        "Teams should review outputs with appropriate product, domain, legal, or policy experts before making launch decisions."
+    )
+
     st.divider()
 
+    # Move detailed sections into expanders:
     # Core tension
     st.subheader("Core tension")
     st.write(result["core_tension"])
 
-    # Score drivers
-    st.subheader("Score drivers")
-    st.markdown(f"**AI Fit:** {result['ai_fit_driver']}")
-    st.markdown(f"**Commercial:** {result['commercial_driver']}")
-    st.markdown(f"**Risk:** {result['risk_driver']}")
-    st.markdown(f"**Evidence:** {result['evidence_driver']}")
-
-    # Useful kernel / commercial value / risky framing
-    col_a, col_b, col_c = st.columns(3)
-
-    with col_a:
-        st.subheader("Useful kernel")
-        st.write(result["useful_kernel"])
-
-    with col_b:
-        st.subheader("Commercial value")
-        st.write(result["commercial_value"])
-
-    with col_c:
-        st.subheader("Risky framing to avoid")
-        st.write(result["risky_framing"])
-    
-    # What to build / not build
+    # Build / not build stays visible
     col_build, col_not_build = st.columns(2)
 
     with col_build:
         st.subheader("What to build")
         for item in result["what_to_build"]:
             st.markdown(f"- {item}")
-        
+
     with col_not_build:
         st.subheader("What not to build")
         for item in result["what_not_to_build"]:
             st.markdown(f"- {item}")
-    
-    # Human checkpoint
-    st.subheader("Human review workflow")
-    st.markdown(f"**Reviewer:** {result['human_reviewer']}")
-    st.markdown("**Review package:**")
-    for item in result["review_package"]:
-        st.markdown(f"- {item}")
-    st.markdown(f"**Review scope:** {result['review_scope']}")
-    st.markdown(f"**Timing:** {result['review_timing']}")
-    st.markdown(f"**Decision authority:** {result['review_action']}")
 
+    # Detailed sections hidden by default
+    with st.expander("Score drivers"):
+        st.markdown(f"**AI Fit:** {result['ai_fit_driver']}")
+        st.markdown(f"**Commercial:** {result['commercial_driver']}")
+        st.markdown(f"**Risk:** {result['risk_driver']}")
+        st.markdown(f"**Evidence:** {result['evidence_driver']}")
 
-    # Validation workflow:
-    st.subheader("Validation workflow")
-    st.markdown(f"**Method:** {result['validation_method']}")
-    st.markdown(f"**Sample:** {result['validation_coverage']}")
-    st.markdown("**Metrics:**")
-    for item in result["validation_metrics"]:
-        st.markdown(f"- {item}")
-    st.markdown(f"**Move-forward criteria:** {result['move_forward_criteria']}")
-    st.markdown(f"**Stop or redesign signal:** {result['stop_or_redesign_signal']}")
+    with st.expander("Human review workflow"):
+        st.markdown(f"**Reviewer:** {result['human_reviewer']}")
+        st.markdown("**Review package:**")
+        for item in result["review_package"]:
+            st.markdown(f"- {item}")
+        st.markdown(f"**Review scope:** {result['review_scope']}")
+        st.markdown(f"**Timing:** {result['review_timing']}")
+        st.markdown(f"**Decision authority:** {result['review_action']}")
+
+    with st.expander("Validation workflow"):
+        st.markdown(f"**Method:** {result['validation_method']}")
+        st.markdown(f"**Validation coverage:** {result['validation_coverage']}")
+        st.markdown("**Metrics:**")
+        for item in result["validation_metrics"]:
+            st.markdown(f"- {item}")
+        st.markdown(f"**Move-forward criteria:** {result['move_forward_criteria']}")
+        st.markdown(f"**Stop or redesign signal:** {result['stop_or_redesign_signal']}")
     
     # ------------------------------
     # Markdown version of result
@@ -1108,6 +1126,12 @@ if submitted:
         "## Core Tension",
         result["core_tension"],
         "",
+        "## Risk Type",
+        result["risk_type"],
+        "",
+        "## Risk Themes",
+        *[f"- {item}" for item in result["risk_themes"]],
+        "",
         "## Useful Kernel",
         result["useful_kernel"],
         "",
@@ -1161,21 +1185,17 @@ if submitted:
     markdown_output = "\n".join(markdown_lines)
 
     # Add a button to copy/download markdown output:
-    st.subheader("Copy result as Markdown")
-    st.text_area("Markdown output", markdown_output, height=400)
+    with st.expander("Copy or download Markdown report"):
+        st.markdown("### Markdown preview")
+        st.markdown(markdown_output)
 
-    st.download_button(
-        label="Download Markdown",
-        data=markdown_output,
-        file_name=f"{safe_filename}_aifit_result.md",
-        mime="text/markdown"
-    )
+        with st.expander("Copy raw Markdown"):
+            st.text_area("Raw Markdown", markdown_output, height=400)
 
-    # ------------------------------
-    # Model limitation note
-    # ------------------------------
-    st.markdown(
-    """
-    Note: Custom evaluations are generated using an LLM and should be treated as structured decision support, not final product judgment. Outputs may vary across runs.
-    """
-    )
+        st.download_button(
+            label="Download Markdown",
+            data=markdown_output,
+            file_name=f"{safe_filename}_aifit_result.md",
+            mime="text/markdown"
+        )
+
