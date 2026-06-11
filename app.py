@@ -42,13 +42,13 @@ st.markdown(
     }
     
     .stMarkdown p {
-        font-size: 1.05rem;
+        font-size: 1.15rem;
         line-height: 1.6;
 
     }
-    
+
     .stMarkdown li {
-        font-size: 1.05rem;
+        font-size: 1.15rem;
         line-height: 1.6;
     }
     </style>
