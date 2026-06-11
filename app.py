@@ -21,7 +21,7 @@ st.markdown(
     .stSelectbox label,
     .stRadio label,
     .stCheckbox label {
-        font-size: 1.2rem !important;
+        font-size: 1.05rem !important;
         font-weight: 600 !important;
     }
 
@@ -33,7 +33,7 @@ st.markdown(
 
     /* Selectbox text */
     div[data-baseweb="select"] {
-        font-size: 1.15rem !important;
+        font-size: 1.10rem !important;
     }
 
     /* Section headers */
