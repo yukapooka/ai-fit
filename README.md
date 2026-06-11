@@ -36,6 +36,22 @@ The app is not a final decision-maker. It is a **decision-support tool for AI pr
 
 *AIFit transforms an AI feature idea into a risk-aware decision-support report through structured evaluation, risk-specific guidance, and human review planning.*
 
+![Evaluation summary](docs/images/evaluation_summary.png)
+
+**Evaluation summary:** AIFit generates a recommendation, Build Readiness score, risk classification, and rationale.
+
+![What to build / not build](docs/images/what_to_build_not_build.png)
+
+**Build boundaries:** The app separates useful product scope from risky implementation patterns.
+
+![Human Review Workflow](docs/images/human_review_workflow.png)
+
+**Human review workflow:** AIFit specifies who should review the AI output, what artifacts to inspect, and what authority reviewers have.
+
+![Validation Workflow](docs/images/validation_workflow.png)
+
+**Validation workflow:** AIFit helps teams define how the feature should be tested, what scenarios to include, what metrics to track, and when to move forward or redesign.
+
 ## Evaluation framework
 
 AIFit evaluates AI feature ideas across four dimensions: AI Fit, Commercial Upside, Risk Burden; and Evidence Readiness.

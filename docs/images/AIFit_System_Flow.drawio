@@ -1,0 +1,106 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36" version="28.0.7">
+  <diagram name="Page-1" id="3PxtnGZ8yp4KbMscscgN">
+    <mxGraphModel dx="866" dy="1165" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="light-dark(#FFFFFF,#B3B3B3)" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-1" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;User Input&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Feature idea, users, risks, value&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="80" y="50" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-2" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;Input Checks&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;Required fields complete?&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="80" y="180" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-3" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;Prompt Builder&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;Schema + feature context&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="80" y="310" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-4" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;LLM Evaluation&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;Structured risk assessment&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="80" y="440" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-5" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;Normalization Layer&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 15px; background-color: transparent;&quot;&gt;Normalize outputs&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 15px; background-color: transparent;&quot;&gt;Apply safeguards&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="80" y="569" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-6" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;AIFit Analysis&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;Scores + recommendation&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="80" y="701" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-7" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;Markdown Export&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;Download&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="80" y="833" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-8" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;Risk Guidance Library&lt;/font&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- False Validation&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- Emotional Vulnerability&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- Financial Manipulation&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- Fairness / Bias&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- Privacy / Sensitive data&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- General AI Product RIsk&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0050ef;fontColor=#ffffff;strokeColor=#001DBC;" vertex="1" parent="1">
+          <mxGeometry x="400" y="50" width="270" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-9" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;Decision Support Report&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- Recommendation&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;- Score Snapshot&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 15px; background-color: transparent;&quot;&gt;- Risk Classification&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 15px; background-color: transparent;&quot;&gt;- RIsk Rationale&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 15px; background-color: transparent;&quot;&gt;- Human Review Workflow&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;- Validation Workflow&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fa6800;fontColor=light-dark(#000000,#000000);strokeColor=#C73500;" vertex="1" parent="1">
+          <mxGeometry x="414" y="671" width="270" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-10" value="" style="endArrow=classic;html=1;rounded=0;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1" source="9X8Rr9K2liBVyYGqUI6W-8" target="9X8Rr9K2liBVyYGqUI6W-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="521" y="210" as="sourcePoint" />
+            <mxPoint x="261" y="361" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="535" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-11" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1" source="9X8Rr9K2liBVyYGqUI6W-6" target="9X8Rr9K2liBVyYGqUI6W-9">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="330" y="520" as="sourcePoint" />
+            <mxPoint x="380" y="470" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-12" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1" source="9X8Rr9K2liBVyYGqUI6W-1" target="9X8Rr9K2liBVyYGqUI6W-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="380" y="340" as="sourcePoint" />
+            <mxPoint x="380" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-13" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="164.29" y="270" as="sourcePoint" />
+            <mxPoint x="164.29" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-14" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="400" as="sourcePoint" />
+            <mxPoint x="160" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-15" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="164.29" y="530" as="sourcePoint" />
+            <mxPoint x="164.29" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-16" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="164.29000000000002" y="659" as="sourcePoint" />
+            <mxPoint x="164.29000000000002" y="699" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-17" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="791" as="sourcePoint" />
+            <mxPoint x="160" y="831" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-19" value="&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;Human Review&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="414" y="864" width="271" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-20" value="&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;Product Decision&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;(Build / Prototype / Narrow / Avoid)&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontColor=light-dark(#000000,#000000);fillColor=light-dark(#FFFFFF,#E6E6E6);" vertex="1" parent="1">
+          <mxGeometry x="413" y="963" width="273" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-21" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="548.79" y="821" as="sourcePoint" />
+            <mxPoint x="548.79" y="861" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9X8Rr9K2liBVyYGqUI6W-23" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#000000,#000000);" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="551" y="921" as="sourcePoint" />
+            <mxPoint x="551" y="961" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

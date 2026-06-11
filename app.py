@@ -11,6 +11,41 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown(
+    """
+    <style>
+
+    /* Widget labels */
+    .stTextArea label,
+    .stTextInput label,
+    .stSelectbox label,
+    .stRadio label,
+    .stCheckbox label {
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Text entered into text areas */
+    textarea {
+        font-size: 1.05rem !important;
+        line-height: 1.5 !important;
+    }
+
+    /* Selectbox text */
+    div[data-baseweb="select"] {
+        font-size: 1.05rem !important;
+    }
+
+    /* Section headers */
+    h2, h3 {
+        font-size: 1.2rem !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ------------------------------
 # Example test cases
 # ------------------------------
