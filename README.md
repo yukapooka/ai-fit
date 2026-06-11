@@ -38,7 +38,7 @@ The app is not a final decision-maker. It is a **decision-support tool for AI pr
 
 ## Screenshots
 
-### Evaluation summary
+### Evaluation summary output
 
 <p align="center">
   <img src="docs/images/evaluation_summary.png" width="80%">
@@ -48,7 +48,7 @@ AIFit generates a recommendation, Build Readiness score, risk classification, an
 
 ---
 
-### Build boundaries
+### Build boundaries output
 
 <p align="center">
   <img src="docs/images/build_boundaries.png" width="80%">
@@ -58,7 +58,7 @@ AIFit separates useful product scope from risky implementation patterns.
 
 ---
 
-### Human review workflow
+### Human review workflow output
 
 <p align="center">
   <img src="docs/images/human_review_workflow.png" width="80%">
@@ -68,7 +68,7 @@ AIFit specifies who should review the AI output, what artifacts to inspect, and 
 
 ---
 
-### Validation workflow
+### Validation workflow output
 
 <p align="center">
   <img src="docs/images/validation_workflow.png" width="80%">
