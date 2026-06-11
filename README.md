@@ -30,6 +30,11 @@ It helps users:
 
 The app is not a final decision-maker. It is a **decision-support tool for AI product managers**.
 
+## System architecture
+
+<img width="850" height="1100" alt="AIFit System Flow" src="https://github.com/user-attachments/assets/70a55fbd-5286-4e05-abee-a910f492ee68" />
+*AIFit transforms an AI feature idea into a risk-aware decision-support report through structured evaluation, risk-specific guidance, and human review planning.*
+
 ## Evaluation framework
 
 AIFit evaluates AI feature ideas across four dimensions: AI Fit, Commercial Upside, Risk Burden; and Evidence Readiness.
