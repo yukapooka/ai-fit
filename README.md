@@ -30,6 +30,14 @@ It helps users:
 
 The app is not a final decision-maker. It is a **decision-support tool for AI product managers**.
 
+## Live demo
+
+AIFit is deployed on Streamlit Community Cloud.
+- Live app: https://ai-fit.streamlit.app/
+- Source code: https://github.com/yukapooka/ai-fit
+
+Note: Custom evaluations use an LLM via OpenRouter. Outputs may vary across runs and should be treated as structured decision support, not final product judgment.
+
 ## System architecture
 <p align="center">
     <img width="638" height="825" alt="AIFit System Flow" src="https://github.com/user-attachments/assets/70a55fbd-5286-4e05-abee-a910f492ee68" />
@@ -130,7 +138,7 @@ The goal is to help teams define what evidence they need before scaling an AI fe
 - Model used for MVP: `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
 - Version control: GitHub
 - IDE: VS Code
-- Hosting: TBD
+- Hosting: Streamlit Community Cloud
 
 ## Prerequisites
 
