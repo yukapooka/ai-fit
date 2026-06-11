@@ -51,7 +51,7 @@ AIFit generates a recommendation, Build Readiness score, risk classification, an
 ### Build boundaries output
 
 <p align="center">
-  <img src="docs/images/build_boundaries.png" width="80%">
+  <img src="docs/images/what_to_build_not_build.png" width="80%">
 </p>
 
 AIFit separates useful product scope from risky implementation patterns.
