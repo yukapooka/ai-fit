@@ -40,7 +40,17 @@ st.markdown(
     h2, h3 {
         font-size: 1.2rem !important;
     }
+    
+    .stMarkdown p {
+        font-size: 1.05rem;
+        line-height: 1.6;
 
+    }
+    
+    .stMarkdown li {
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
     </style>
     """,
     unsafe_allow_html=True,
