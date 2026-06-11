@@ -36,21 +36,45 @@ The app is not a final decision-maker. It is a **decision-support tool for AI pr
 
 *AIFit transforms an AI feature idea into a risk-aware decision-support report through structured evaluation, risk-specific guidance, and human review planning.*
 
-![Evaluation summary](docs/images/evaluation_summary.png)
+## Screenshots
 
-**Evaluation summary:** AIFit generates a recommendation, Build Readiness score, risk classification, and rationale.
+### Evaluation summary
 
-![What to build / not build](docs/images/what_to_build_not_build.png)
+<p align="center">
+  <img src="docs/images/evaluation_summary.png" width="80%">
+</p>
 
-**Build boundaries:** The app separates useful product scope from risky implementation patterns.
+AIFit generates a recommendation, Build Readiness score, risk classification, and rationale.
 
-![Human Review Workflow](docs/images/human_review_workflow.png)
+---
 
-**Human review workflow:** AIFit specifies who should review the AI output, what artifacts to inspect, and what authority reviewers have.
+### Build boundaries
 
-![Validation Workflow](docs/images/validation_workflow.png)
+<p align="center">
+  <img src="docs/images/build_boundaries.png" width="80%">
+</p>
 
-**Validation workflow:** AIFit helps teams define how the feature should be tested, what scenarios to include, what metrics to track, and when to move forward or redesign.
+AIFit separates useful product scope from risky implementation patterns.
+
+---
+
+### Human review workflow
+
+<p align="center">
+  <img src="docs/images/human_review_workflow.png" width="80%">
+</p>
+
+AIFit specifies who should review the AI output, what artifacts to inspect, and what authority reviewers have.
+
+---
+
+### Validation workflow
+
+<p align="center">
+  <img src="docs/images/validation_workflow.png" width="80%">
+</p>
+
+AIFit helps teams define how the feature should be tested, what scenarios to include, what metrics to track, and when to move forward or redesign.
 
 ## Evaluation framework
 
