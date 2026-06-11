@@ -33,7 +33,7 @@ st.markdown(
 
     /* Selectbox text */
     div[data-baseweb="select"] {
-        font-size: 1.10rem !important;
+        font-size: 1.05rem !important;
     }
 
     /* Section headers */
@@ -42,13 +42,13 @@ st.markdown(
     }
     
     .stMarkdown p {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         line-height: 1.6;
 
     }
 
     .stMarkdown li {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         line-height: 1.6;
     }
     </style>
