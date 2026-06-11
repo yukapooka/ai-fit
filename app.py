@@ -28,12 +28,12 @@ st.markdown(
     /* Text entered into text areas */
     textarea {
         font-size: 1.05rem !important;
-        line-height: 1.5 !important;
+        line-height: 1.15 !important;
     }
 
     /* Selectbox text */
     div[data-baseweb="select"] {
-        font-size: 1.05rem !important;
+        font-size: 1.15rem !important;
     }
 
     /* Section headers */
