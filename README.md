@@ -40,7 +40,8 @@ Note: Custom evaluations use an LLM via OpenRouter. Outputs may vary across runs
 
 ## System architecture
 <p align="center">
-    <img width="638" height="825" alt="AIFit_System_Flow" src="https://github.com/user-attachments/assets/4f62877b-985b-4d57-94b4-8ddf56d1c20b" />
+    <img width="638" height="825" alt="AIFit_System_Flow_v2" src="https://github.com/user-attachments/assets/936a1b8a-1bf0-4fbc-953f-07996be7e6ac" />
+
 </p>
 *AIFit transforms an AI feature idea into a risk-aware decision-support report through structured evaluation, risk-specific guidance, and human review planning.*
 
