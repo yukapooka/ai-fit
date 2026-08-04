@@ -214,8 +214,7 @@ I built AIFit to get hands-on experience in:
 * explainable scoring;
 * risk-aware validation design;
 * Streamlit app development;
-* OpenRouter API integration;
-* agentic / vibe coding for MVP development.
+* OpenRouter API integration
 
 ## Future work / backlog
 Potential future improvements:
